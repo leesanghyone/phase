@@ -23,6 +23,7 @@ def receiver(c_sock):
         if 작업방식=="가구매작업":
             print("가구매작업을 데이터를 받았습니다.")
             작업데이터=json.loads(c_sock.recv(1024).decode("utf-8"))
+            waitlist.append(작업데이터)
             print(작업데이터["url"],작업데이터["최대가격"])
             
         elif 작업방식=="서버정보업데이트":
