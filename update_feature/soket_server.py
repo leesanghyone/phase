@@ -34,7 +34,8 @@ def receiver(c_sock):
             
             #서버일감 정보를 보내준다.
             for work in waitlist:
-                c_sock.sendall(json.dumps(work).encode("utf-8"))
+                serverwork=[work["url"],work["작업시간"],work["플랫폼"]]
+                c_sock.sendall(json.dumps(serverwork).encode("utf-8"))
             c_sock.sendall("작업끝".encode("utf-8"))
             
 
