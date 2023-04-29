@@ -26,20 +26,22 @@ def receiver(c_sock):
             작업데이터=json.loads(c_sock.recv(1024).decode("utf-8"))
             waitlist.append(작업데이터)
             print(작업데이터["url"],작업데이터["최대가격"])
-        ###########################################    
+        ##2.서버정보업데이트
         elif 작업방식=="서버정보업데이트":
             print("서버정보 업데이트를 클라이언트가 요청했습니다")
             
-            #2. 클라이언트에게 작업방식을 보내준다.
+            #2-1. 클라이언트에게 작업방식을 보내준다.
             c_sock.sendall("서버정보업데이트".encode("utf-8"))
             
-            #3.서버일감 정보를 보내준다.
+            #2-2서버일감 정보를 보내준다.
             for work in waitlist:
                 sendwork=[waitlist.index(work),work["작업시간"],work["플랫폼"],waitlist.index(work)] #1.인덱스, 2.작업시간, 3.플랫폼 ,4.고유인덱스
                 c_sock.sendall(json.dumps(sendwork).encode("utf-8"))
+                time.sleep(1)
             c_sock.sendall("작업끝".encode("utf-8"))
+            print("서버정보 업데이트를 완료했습니다.")
 
-            #클라이언측의서 응답을 받는다.
+            #2-3클라이언측의 응답을 받는다.
             응답=c_sock.recv(1024).decode("utf-8")
 
             if 응답=="수정있음":
@@ -52,7 +54,7 @@ def receiver(c_sock):
                     waitlist[수정데이터[4]]["플랫폼"]=수정데이터[3]
                     print("수정완료")
 
-                    #인덱스를 수정사항이 있다면, 수정한다.
+            #2-3.인덱스를 수정사항이 있다면, 수정한다.
                     if 수정데이터[0]!=수정데이터[4]:
                         고유인덱스=수정데이터[4]
                         고유데이터=waitlist[고유인덱스]
@@ -62,17 +64,24 @@ def receiver(c_sock):
                         waitlist[변경인덱스]=고유데이터
                         print("인덱스를 수정했습니다.")
             elif 응답=="수정없음":
-                pass
-
-
+                print("수정없음")
+            
         else:
             print("작업방식이 잘못되었습니다.")
+
+def timemanager():
+    while True:
+        쓰레드락=threading.Lock()
+        with 쓰레드락:
+            예약시간=waitlist[0]["작업시간"]
+        while True:
+            time.time()-time.mktime(time.strptime(예약시간,"%H:%M"))
+            time.sleep(1)
+
 
 def worker(c_sock):
     pass
 
-def timeamanager():
-    pass
 
 def socket_start(ip=str,port=int):
     c_sock=initstater(ip,port)
