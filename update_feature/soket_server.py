@@ -34,11 +34,34 @@ def receiver(c_sock):
             
             #서버일감 정보를 보내준다.
             for work in waitlist:
-                serverwork=[waitlist.index(work),work["url"],work["작업시간"],work["플랫폼"]] #1.인덱스, 2. url, 3. 작업시간, 4. 플랫폼
-                c_sock.sendall(json.dumps(serverwork).encode("utf-8"))
+                sendwork=[waitlist.index(work),work["url"],work["작업시간"],work["플랫폼"],waitlist.index(work)] #1.인덱스, 2. url, 3. 작업시간, 4. 플랫폼 , 5.고유인덱스
+                c_sock.sendall(json.dumps(sendwork).encode("utf-8"))
             c_sock.sendall("작업끝".encode("utf-8"))
-            
 
+            #클라이언측의서 응답을 받는다.
+            응답=c_sock.recv(1024).decode("utf-8")
+
+            if 응답=="수정있음":
+                while True:
+                    수정데이터=json.loads(c_sock.recv(1024).decode("utf-8"))
+                    if 수정데이터=="수정끝":
+                        break
+                    waitlist[수정데이터[4]]["url"]=수정데이터[1]
+                    waitlist[수정데이터[4]]["작업시간"]=수정데이터[2]
+                    waitlist[수정데이터[4]]["플랫폼"]=수정데이터[3]
+                    print("수정완료")
+
+                    #인덱스를 수정사항이 있다면, 수정한다.
+                    if 수정데이터[0]!=수정데이터[4]:
+                        고유값=수정데이터[4]
+                        고유데이터=waitlist[고유값]
+                        변경인덱스=수정데이터[0]
+                        변경값=waitlist[변경인덱스]
+                        waitlist[고유값]=변경값
+                        waitlist[변경인덱스]=고유데이터
+
+            elif 응답=="수정없음":
+                pass
 
 
         else:
