@@ -1,13 +1,16 @@
 import socket,json,threading,time,sys
 import socket,json,threading,time,sys
+from datetime import datetime
 # from Coupang_work_fungtion import *
 
 #--------------실행자 함수다..----------------------.
 def initstater(ip=str,port=int):
-    global waitlist,workerlist
-    #1. 준비재료
+    global waitlist,workerlist,쓰레드락
+    #--------------사전준비 자료다.----------------------.
     waitlist=[{"url": "https://copang.com","작업시간" : 100000,"플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : 20000,"플랫폼" : 30000}]
     workerlist=[]
+    쓰레드락=threading.Lock()
+    #--------------실행자 함수다..----------------------.
     sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     sock.bind((ip,port))
     sock.listen()
@@ -45,6 +48,11 @@ def receiver(c_sock):
 #--------------일을하는 작업자 파트.----------------------.
 def worker(c_sock):
     #--------------받아온 자료로 일을 하는 파트다.----------------------.
+        #-------------리소스 절약 파트다..------------------
+    if len(workerlist)==0:
+        print("일감이 없어서 대기중입니다.")
+        time.sleep(5)
+        #--------------실질적으로 일을하는 파트다.----------------------.
     for work in workerlist:
         print(work)
         url=work["url"]
@@ -58,7 +66,11 @@ def worker(c_sock):
         jangbaguni= work["jangbaguni"]
         point= work["point"]
         msg="그냥 잘 배송해주면 좋구요."
-        coupang_start(url=url,minprice=minprice,maxprice=maxprice,page_view_time=page_view_time,moq=moq,jjim=jjim,optionmenus1=optionmenus1,optionmenus2=optionmenus2,jangbaguni=jangbaguni,point=point,msg=msg)
+        # coupang_start(url=url,minprice=minprice,maxprice=maxprice,page_view_time=page_view_time,moq=moq,jjim=jjim,optionmenus1=optionmenus1,optionmenus2=optionmenus2,jangbaguni=jangbaguni,point=point,msg=msg)
+        #--------------작업한 녀석은 지워야 한다----------------------
+        workerlist.remove(work)
+        print("일감을 처리했습니다.")
+
     #--------------결과물을 클라측에 전송(엑셀자료)----------------------.
     print("결과물을 클라측에 전송(엑셀자료)")
     엑셀작업데이터={
@@ -75,13 +87,29 @@ def worker(c_sock):
     print("결과물을 클라측에 전송(엑셀자료) 완료")
 
 #--------------타임매니저(웨잇리스트->워크리스트 일을 던져줌)----------
-def timeamanager():
-    pass
+def Time_manager():
+    while True:
+        #-----------작업시간까지 대기하기----------
+        with 쓰레드락:
+            예약시간=waitlist[0]["작업시간"]
+        작업대기시간=예약시간-datetime.now()
+        time.sleep(작업대기시간)
+        #-----------변경사항 없는지 체크하기.----------
+        with 쓰레드락:
+            if waitlist[0]["작업시간"]==예약시간:
+                일감=waitlist.pop(0)
+            elif waitlist[0]["작업시간"]!=예약시간:
+                Time_manager()
+        #-----------워크리스트로 일감 던지기.----------
+        workerlist.append(일감)
+
+    
 #--------------실행을 쉽게 도와주는 함수다.----------------------.
 def socket_start(ip=str,port=int):
     c_sock=initstater(ip,port)
     threading.Thread(target=receiver,args=(c_sock,)).start()
     threading.Thread(target=worker,args=(c_sock,)).start()
+    threading.Thread(target=Time_manager).start()
 
 #--------------사용설명을 도와주는 파트다.----------------------.
 if __name__ == '__main__':
