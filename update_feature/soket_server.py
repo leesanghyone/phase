@@ -26,7 +26,8 @@ def receiver(c_sock):
         if 작업방식=="가구매작업":
             print("가구매작업을 데이터를 받겠습니다.")
             작업데이터=json.loads(c_sock.recv(1024).decode("utf-8"))
-            waitlist.append(작업데이터)
+            with 쓰레드락:
+                waitlist.append(작업데이터)
             print("가구매작업을 데이터를 받았습니다.")
             print(작업데이터)
 
@@ -34,14 +35,19 @@ def receiver(c_sock):
         elif 작업방식=="서버정보업데이트":
             print("서버정보 업데이트를 클라이언트가 요청했습니다")
             
-            #1. 클라이언트에게 작업방식을 보내준다.
+            #1. 클라이언트에게 데이터 받을 준비해라.
             c_sock.sendall("서버정보업데이트".encode("utf-8"))
             
             #서버일감 정보를 보내준다.
-            for work in waitlist:
-                c_sock.sendall(json.dumps(work).encode("utf-8"))
+            with 쓰레드락:
+                server_waitlist=waitlist.copy()
+            for work in server_waitlist:
+                ####!!!!여기 수정이 필요하다 !!!!!!
+                #원본을 보낼 필요가 없다, 데이터 가공이 필요함.
+                #1.고유값, 2.작업시간, 3.플랫폼 4.고유인덱스값만 보내면 된다.
+                c_sock.sendall(json.dumps(work).encode("utf-8")) #work는 딕셔너리 형태다.
             c_sock.sendall("작업끝".encode("utf-8"))
-            
+
         else:
             print("작업방식이 잘못되었습니다.")
 
