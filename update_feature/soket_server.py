@@ -63,6 +63,7 @@ def receiver(c_sock):
                         waitlist[고유인덱스]=변경데이터
                         waitlist[변경인덱스]=고유데이터
                         print("인덱스를 수정했습니다.")
+            #2-4. 인덱스를 삭제한 경우.
             elif 응답=="수정없음":
                 print("수정없음")
             
