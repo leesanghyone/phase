@@ -31,6 +31,8 @@ def receiver(c_sock):
             print("가구매작업을 데이터를 받았습니다.")
             print(작업데이터)
 
+            #소규모 상태창을 보내야 함.
+
     #--------------서버정보업데이트를 처리한다----------------------.            
         elif 작업방식=="서버정보업데이트":
             print("서버정보 업데이트를 클라이언트가 요청했습니다")
@@ -41,15 +43,19 @@ def receiver(c_sock):
             #서버일감 정보를 보내준다.
             with 쓰레드락:
                 server_waitlist=waitlist.copy()
+            보낼데이터=[]
             for work in server_waitlist:
-                ####!!!!여기 수정이 필요하다 !!!!!!
-                #원본을 보낼 필요가 없다, 데이터 가공이 필요함.
-                #1.고유값, 2.작업시간, 3.플랫폼 4.고유인덱스값만 보내면 된다.
-                c_sock.sendall(json.dumps(work).encode("utf-8")) #work는 딕셔너리 형태다.
+                일감가공데이터={"인덱스": server_waitlist.index(work),"작업시간" : work["작업시간"],"플랫폼": work["플랫폼"],"고유인덱스": server_waitlist.index(work)}
+                보낼데이터.append(일감가공데이터)
+            c_sock.sendall(json.dumps(보낼데이터).encode("utf-8")) #work는 딕셔너리 형태다.[{ㄴㅇㄹㄴ},{ㄴㅇㄹㄴㅇㄹ},{ㄴㅇㄹㄴㅇㄹ}]
             c_sock.sendall("작업끝".encode("utf-8"))
+        
+        elif 작업방식=="서버간소화정보":
+            print("서버 간소화 정보 전달.")
 
         else:
             print("작업방식이 잘못되었습니다.")
+
 
 #--------------일을하는 작업자 파트.----------------------.
 def worker(c_sock):
