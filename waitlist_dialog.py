@@ -33,6 +33,7 @@ class Ui_waitlistDialog(object):
         self.cancle_btn = QtWidgets.QPushButton(waitlistDialog)
         self.cancle_btn.setGeometry(QtCore.QRect(10, 260, 171, 31))
         self.cancle_btn.setObjectName("cancle_btn")
+        self.cancle_btn.clicked.connect(waitlistDialog.close)
 
         self.retranslateUi(waitlistDialog)
         QtCore.QMetaObject.connectSlotsByName(waitlistDialog)

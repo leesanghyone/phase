@@ -58,12 +58,16 @@ def receiver(c_sock):
             #--------------수정사항을 수정한다.(내부값수정)----------------------.
             elif 응답데이터=="수정있음":
                 print("수정있음") 
+                Time_manager() #시관관리자를 호출한다.
               
             #--------------수정사항을 수정한다.(내부값수정)----------------------.
 
         
         elif 작업방식=="서버간소화정보":
             print("서버 간소화 정보 전달.")
+            with 쓰레드락:
+                보낼데이터=len(server_waitlist)
+            c_sock.sendall((보낼데이터).encode("utf-8"))
 
         else:
             print("작업방식이 잘못되었습니다.")
@@ -98,7 +102,7 @@ def worker(c_sock):
     #--------------결과물을 클라측에 전송(엑셀자료)----------------------.
     print("결과물을 클라측에 전송(엑셀자료)")
     엑셀작업데이터={
-        "pc이름": "https://copang.com",
+        "pc이름": pcname,
         "플랫폼": "https://copang.com",
         "카카오톡아이디": "https://copang.com",
         "작업시간": "https://copang.com",
@@ -129,7 +133,9 @@ def Time_manager():
 
     
 #--------------실행을 쉽게 도와주는 함수다.----------------------.
-def socket_start(ip=str,port=int):
+def socket_start(ip=str,port=int,workcomname=str):
+    global pcname
+    pcname=workcomname
     c_sock=initstater(ip,port)
     threading.Thread(target=receiver,args=(c_sock,)).start()
     threading.Thread(target=worker,args=(c_sock,)).start()
