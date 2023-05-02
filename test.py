@@ -1,30 +1,30 @@
-import datetime
-import time
+from PyQt5 import QtWidgets
 
-def main():
-    # 사용자로부터 예약 시간 입력 받기
-    print("예약 시간을 입력하세요. (24시간 형식) 예시: 17:30")
-    reservation_time = input()
+class MyWindow(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
 
-    # 입력된 시간을 datetime 객체로 변환
-    now = datetime.datetime.now()
-    reservation_hour, reservation_minute = map(int, reservation_time.split(':'))
-    reservation_datetime = now.replace(hour=reservation_hour, minute=reservation_minute, second=0, microsecond=0)
+        # QLCDNumber 위젯 생성
+        self.lcdNumber = QtWidgets.QLCDNumber(self)
+        self.lcdNumber.setDigitCount(5)
 
-    # 예약 시간이 이미 지난 경우, 다음 날로 설정
-    if now > reservation_datetime:
-        reservation_datetime += datetime.timedelta(days=1)
+        # QPushButton 위젯 생성
+        self.button = QtWidgets.QPushButton('Click me!', self)
 
-    # 현재 시간과 예약 시간 사이의 시간(초) 계산
-    time_diff = (reservation_datetime - now).total_seconds()
+        # 버튼 시그널 연결
+        self.button.clicked.connect(self.on_button_clicked)
 
-    print(f"{reservation_datetime}에 알림이 설정되었습니다.")
+        # 위젯 위치 설정
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.addWidget(self.lcdNumber)
+        layout.addWidget(self.button)
 
-    # 예약 시간까지 대기
-    time.sleep(time_diff)
+    # 버튼 클릭 시 호출될 메서드
+    def on_button_clicked(self):
+        print('Button clicked!')
 
-    # 알림 메시지 출력
-    print("예약 시간입니다!")
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app = QtWidgets.QApplication([])
+    window = MyWindow()
+    window.show()
+    app.exec_()
