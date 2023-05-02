@@ -464,7 +464,8 @@ if __name__ == "__main__":
     driver=make_driver()
     time.sleep(2)
     driver.get("https://www.coupang.com/")
-    driver.implicitly_wait(10)
-    scroll_time(5)
+    input()
+    # driver.implicitly_wait(10)
+    # scroll_time(5)
   
  

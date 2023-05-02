@@ -213,26 +213,7 @@ class Ui_C_inputDialog(object):
         self.close_btn.setText(_translate("C_inputDialog", "취소"))
         self.input_group.setTitle(_translate("C_inputDialog", "입력정보"))
         self.URL1_label.setText(_translate("C_inputDialog", "URL :"))
-        self.workinter_checkbox.clicked.connect(self.workon)
-        self.Reservationtime_checkbox.clicked.connect(self.timeon)
-
-    
-    def workon(self):
-        if self.workinter_checkbox.isChecked():
-            self.workinterbal_label.setEnabled(True)
-            self.workinterbal_spinbox.setEnabled(True)
-        else:
-            self.workinterbal_label.setEnabled(False)
-            self.workinterbal_spinbox.setEnabled(False)
-
-
-    def timeon(self):
-        if self.Reservationtime_checkbox.isChecked():
-            self.Reservation_label.setEnabled(True)
-            self.Reservation_time_edit.setEnabled(True)
-        else:
-            self.Reservation_label.setEnabled(False)
-            self.Reservation_time_edit.setEnabled(False)
+  
         
 
 if __name__ == "__main__":

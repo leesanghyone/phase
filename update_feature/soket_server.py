@@ -25,7 +25,7 @@ def receiver(c_sock):
         작업방식=c_sock.recv(1024).decode("utf-8")
         if 작업방식=="가구매작업":
             print("가구매작업을 데이터를 받겠습니다.")
-            작업데이터=json.loads(c_sock.recv(1024).decode("utf-8"))
+            작업데이터=json.loads(c_sock.recv(4000).decode("utf-8"))
             with 쓰레드락:
                 waitlist.append(작업데이터)
             print("가구매작업을 데이터를 받았습니다.")
@@ -43,10 +43,15 @@ def receiver(c_sock):
             #서버일감 정보를 보내준다.
             with 쓰레드락:
                 server_waitlist=waitlist.copy()
-            보낼데이터=[]
-            for work in server_waitlist:
-                일감가공데이터={"인덱스": server_waitlist.index(work),"작업시간" : work["작업시간"],"플랫폼": work["플랫폼"],"고유인덱스": server_waitlist.index(work)}
-                보낼데이터.append(일감가공데이터)
+            
+            #브런치부분이다.
+            # 보낼데이터=[]
+            # for work in server_waitlist:
+            #     일감가공데이터={"인덱스": server_waitlist.index(work),"작업시간" : work["작업시간"],"플랫폼": work["플랫폼"],"고유인덱스": server_waitlist.index(work)}
+            #     보낼데이터.append(일감가공데이터)
+            
+            #원본 그대로 보내는 부분이다.
+            보낼데이터=server_waitlist
             c_sock.sendall(json.dumps(보낼데이터).encode("utf-8")) #work는 딕셔너리 형태다.[{ㄴㅇㄹㄴ},{ㄴㅇㄹㄴㅇㄹ},{ㄴㅇㄹㄴㅇㄹ}]
             c_sock.sendall("작업끝".encode("utf-8"))
 
@@ -61,6 +66,8 @@ def receiver(c_sock):
                 Time_manager() #시관관리자를 호출한다.
               
             #--------------수정사항을 수정한다.(내부값수정)----------------------.
+            else:
+                print("서버정보업데이트 수정파트에서 문제가생김")
 
         
         elif 작업방식=="서버간소화정보":

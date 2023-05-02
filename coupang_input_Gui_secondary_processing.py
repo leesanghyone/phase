@@ -16,8 +16,26 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         #시그널 슬롯연결.
         self.close_btn.clicked.connect(self.close)
         self.okay_btn.clicked.connect(self.SendData)
-        
+        self.workinter_checkbox.clicked.connect(self.workinterbal)
+        self.Reservationtime_checkbox.clicked.connect(self.timeswitch)
+    
+    
+    def workinterbal(self):
+        if self.workinter_checkbox.isChecked():
+            self.workinterbal_label.setEnabled(True)
+            self.workinterbal_spinbox.setEnabled(True)
+        else:
+            self.workinterbal_label.setEnabled(False)
+            self.workinterbal_spinbox.setEnabled(False)
 
+
+    def timeswitch(self):
+        if self.Reservationtime_checkbox.isChecked():
+            self.Reservation_label.setEnabled(True)
+            self.Reservation_time_edit.setEnabled(True)
+        else:
+            self.Reservation_label.setEnabled(False)
+            self.Reservation_time_edit.setEnabled(False)
 
     def SendData(self):
         self.url1=self.url1_inputEdit.text()
@@ -33,8 +51,10 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         self.최소가격=int(self.minprice_spinbox.text())
         self.최대가격=int(self.maxprice_spinbox.text())
         self.배송메세지=str(self.basongmsg_LineEdit.text())
-        
-        #유효성 검사.
+        self.workinterbal=int(self.workinterbal_spinbox.text())
+        self.timeswitch=str(self.Reservation_time_edit.text())
+       
+        # 유효성 검사.
         if self.최소가격 > 1 and self.최대가격 <= 1:
             self.최대가격=self.최소가격 + 1000
 
