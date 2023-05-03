@@ -8,7 +8,7 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
         super().__init__()
         self.setupUi(self)
         self.initsiganal()
-        self.show()
+        self.tableWidget.keyPressEvent=self.keyPressEvent #주석: 이미 키보드함수 실행되고 있음, 그 값을 바꾸는 것 뿐이다.
     
     def initsiganal(self):
         self.tableWidget.setColumnCount(3)
@@ -16,19 +16,27 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
         self.tableWidget.setColumnWidth(0,50)
         self.tableWidget.setColumnWidth(1,200)
         self.tableWidget.setColumnWidth(2,70)
+
+        #테이블 헤더 스타일 변경
+        header = self.tableWidget.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.Fixed)
+        header.setStyleSheet("""
+            QHeaderView::section {
+                border-bottom: 1px solid black;
+                background-color: lightgrey;
+                padding: 4px;
+                }
+            """)
         
-        self.tableWidget.setRowCount(5) 
-        self.tableWidget.setItem(0,1,QTableWidgetItem("할로"))
-        self.tableWidget.setItem(0,2,QTableWidgetItem("쇼부"))
-        self.tableWidget.keyPressEvent=self.keyPressEvent
-        self.tableWidget.cellChanged.connect(self.on_cell_changed)
-
-
     def keyPressEvent(self, event):
         if event.key() == QtCore.Qt.Key_Delete:
             select_row = set(row.row() for row in self.tableWidget.selectedIndexes())
             for row in reversed(sorted(select_row)):
                 self.tableWidget.removeRow(row)
+        elif event.key() == QtCore.Qt.Key_W:
+            self.tableWidget.selectRow(self.tableWidget.currentRow() - 1)
+        elif event.key() == QtCore.Qt.Key_S:
+            self.tableWidget.selectRow(self.tableWidget.currentRow() + 1)
         elif event.key() == QtCore.Qt.Key_Up:
             self.tableWidget.selectRow(self.tableWidget.currentRow() - 1)
         elif event.key() == QtCore.Qt.Key_Down:
@@ -45,13 +53,7 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
         else:
             pass
           
-    def on_cell_changed(self, row, column):
-        item = self.tableWidget.item(row, column)
-        if item:
-            # 여기서 셀의 수정된 값을 저장하거나 처리할 수 있습니다.
-            # 예를 들어, 셀 값을 출력하려면 다음 코드를 사용할 수 있습니다.
-            print(f"셀 ({row}, {column})의 값이 '{item.text()}'로 변경되었습니다.")
-           
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -9,6 +9,7 @@ def initstater(ip=str,port=int):
     
 #--------------리시버 파트----------------------.
 def receiver(sock,parent=None):
+    global waitlist
     while True:
         작업종류설정=sock.recv(1024).decode("utf-8")
         if 작업종류설정=="가구매작업":
@@ -34,34 +35,47 @@ def receiver(sock,parent=None):
     #--------------서버정보업데이트----------------------.
         elif 작업종류설정=="서버정보업데이트":
             #--------------서버일감 데이터 받기----------------------.
-            서버작업정보=sock.recv(4000).decode("utf-8")
+            waitlist=sock.recv(4000).decode("utf-8")
             print("서버정보 업데이트 데이터를 받았습니다.")
-            서버작업정보=json.loads(서버작업정보) #서버작업정보는 [{딕셔너리1},{딕셔너리2}]
-            
+            waitlist=json.loads(waitlist) #waitlist는 [{딕셔너리1},{딕셔너리2}]
+            print(waitlist)
         
             ##--------------.GUi로 화면 구성함 테이블 위젯.------------
-            parent.tableWidget.setRowCount(5) 
-            parent.tableWidget.setItem(0,1,QTableWidgetItem("할로"))
-            parent.tableWidget.setItem(0,2,QTableWidgetItem("쇼부"))
-
-            ##--------------수정 결과를 보낸다. ----------------------
-            # 응답="수정없음"
-            # sock.sendall(응답.encode("utf-8"))
-            # if 응답=="수정없음":
-            #     print("수정없음")
-            # elif 응답=="수정있음":
-            #     #테이블위젯을 한행씩 읽는다.
-            #     #리스트로 데이터를 보낸다.
-            #     sock.sendall("수정끝".encode("utf-8"))
-            # else:
-            #     print("수정데이터를 못보냄")
-             
+            if parent!=None:
+                parent.tableWidget.setRowCount(len(waitlist))
+                for i in range(len(waitlist)):
+                    parent.tableWidget.setItem(i,0,QTableWidgetItem(f"{i}"))
+                    parent.tableWidget.setItem(i,1,QTableWidgetItem(waitlist[i]["작업시간"]))
+                    parent.tableWidget.setItem(i,2,QTableWidgetItem(waitlist[i]["플랫폼"]))
         else:
             print("작업종류설정이 잘못들어왔습니다.")
 
+def socket_edit_sender(sock,응답데이터,parent):
+    #--------------수정 데이터 보내기. ----------------------
+    sock.sendall(응답데이터.encode("utf-8"))
+    print("수정데이터를 보냅니다.")
+    if 응답데이터=="수정있음":
+        row_count = parent.tableWidget.rowCount()
+        column_count = parent.tableWidget.columnCount()
+        #서버일감 수정사항을 저장한다.
+        for row in range(row_count):
+            for col in range(column_count):
+                item = parent.tableWidget.item(row, col)
+                if col==0:
+                    cell_value = item.text()
+                elif col==1:
+                    cell_value = item.text()
+                    waitlist[row]["작업시간"]=cell_value
+                elif col==2:
+                    cell_value = item.text()
+                    waitlist[row]["플랫폼"]=cell_value
+                else:
+                    print(f"셀 ({row}, {col})은 비어있습니다.")
+    sock.sendall(json.dumps(waitlist).encode("utf-8"))
+
 
 #--------------데이터 보내는 파트.----------------------.
-def socket_sender(sock,작업방식,가구매작업데이터):
+def socket_sender(sock,작업방식,가구매작업데이터=None):
     ##--------------작업방식 데이터 보내기. ----------------------
     sock.sendall(작업방식.encode("utf-8"))
 
@@ -77,7 +91,7 @@ def socket_sender(sock,작업방식,가구매작업데이터):
 
 
 #--------------쉽게 사용하기 위한 함수.----------------------.
-def soket_start(ip,port,parent=None):
+def soket_start(ip,port,parent):
     sock=initstater(ip,port)
     threading.Thread(target=receiver,args=(sock,parent)).start()
     return sock
@@ -102,7 +116,7 @@ if __name__ == '__main__':
             "구매수량" : 1,
             "배송메세지" : "그냥 배송 잘 부탁드려요."
         }
-    박경희컴퓨터sock=soket_start("127.0.0.1",12000) #한번실행되면 계속 연결을 유지한다.
+    박경희컴퓨터sock=soket_start("127.0.0.1",12000,None) #한번실행되면 계속 연결을 유지한다.
     while True: #테스트 때문에 필요한것이다.
         작업방식=input("작업방식을 설정해주세요:") #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
         socket_sender(박경희컴퓨터sock,작업방식,가구매작업데이터) #데이터를 보낸다.

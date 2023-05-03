@@ -7,7 +7,7 @@ from datetime import datetime
 def initstater(ip=str,port=int):
     global waitlist,workerlist,쓰레드락
     #--------------사전준비 자료다.----------------------.
-    waitlist=[{"url": "https://copang.com","작업시간" : 100000,"플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : 20000,"플랫폼" : 30000}]
+    waitlist=[{"url": "https://copang.com","작업시간" : "13:15","플랫폼" : "쿠팡"},{"url" : "https://naver.com","작업시간" : "15:20","플랫폼" : "네이버"}]
     workerlist=[]
     쓰레드락=threading.Lock()
     #--------------실행자 함수다..----------------------.
@@ -36,28 +36,19 @@ def receiver(c_sock):
     #--------------서버정보업데이트를 처리한다----------------------.            
         elif 작업방식=="서버정보업데이트":
             print("서버정보 업데이트를 클라이언트가 요청했습니다")
-            
+
             #1.클라이언트에게 데이터 받을 준비해라.
             c_sock.sendall("서버정보업데이트".encode("utf-8"))
             
             #서버일감 정보를 보내준다.
             with 쓰레드락:
                 server_waitlist=waitlist.copy()
-            
-            #브런치부분이다.
-            # 보낼데이터=[]
-            # for work in server_waitlist:
-            #     일감가공데이터={"인덱스": server_waitlist.index(work),"작업시간" : work["작업시간"],"플랫폼": work["플랫폼"],"고유인덱스": server_waitlist.index(work)}
-            #     보낼데이터.append(일감가공데이터)
-            
             #원본 그대로 보내는 부분이다.
             보낼데이터=server_waitlist
             c_sock.sendall(json.dumps(보낼데이터).encode("utf-8")) #work는 딕셔너리 형태다.[{ㄴㅇㄹㄴ},{ㄴㅇㄹㄴㅇㄹ},{ㄴㅇㄹㄴㅇㄹ}]
-            c_sock.sendall("작업끝".encode("utf-8"))
-
+          
             #--------------수정응답데이터를 받는다.----------------------.
             응답데이터=c_sock.recv(1024).decode("utf-8")
-
             if 응답데이터=="수정없음":    
                 print("수정없음")
             #--------------수정사항을 수정한다.(내부값수정)----------------------.
@@ -65,7 +56,7 @@ def receiver(c_sock):
                 print("수정있음") 
                 Time_manager() #시관관리자를 호출한다.
               
-            #--------------수정사항을 수정한다.(내부값수정)----------------------.
+            --------------수정사항을 수정한다.(내부값수정)----------------------.
             else:
                 print("서버정보업데이트 수정파트에서 문제가생김")
 
