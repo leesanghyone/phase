@@ -34,31 +34,55 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
               "구매수량" : 1,
               "배송메세지" : "그냥 배송 잘 부탁드려요."
           }
+  #-------------서버에서일 받아오고, 수정하고 보내는 역할을 해준다.--------#
+        def 서버창관리(soket):
+          self.serverinfo=WaitlistDialog()
+          self.serverinfo.show()  
+          작업방식="서버정보업데이트" #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
+          socket_sender(soket,작업방식,self.가구매작업데이터) #데이터를 보낸다.
+    #-------------클라이언트 소켓에서 waitlist데이터를 로드한다.---------#
+          while True:
+            if sokey_client.waitlist != None:
+              self.waitlist=sokey_client.waitlist
+              break
+          #--------------#웨잇리스트로 gui를 구현한다.---------#
+          self.serverinfo.inputwaitlist(self.waitlist) 
+          self.serverinfo.waitlist_gui() 
+          self.serverinfo.exec_() 
+    #------------서버일감 수정데이터를 보낸다.----------#
+          작업방식=self.serverinfo.request
+          if 작업방식=="서버수정데이터":
+            socket_sender(soket,작업방식) #데이터를 보낸다.
+            sokey_client.waitlist=None
+            self.waitlist=None
+          elif 작업방식=="서버수정없음":
+            print("일감데이터 수정할게없다.")
       
             
   #------------------작업컴퓨터 클리시 서버리스트창 켜는함수.----------#
         def 박경희서버창():
-          self.serverinfo=WaitlistDialog()
-          self.serverinfo.show()  
-          작업방식="서버정보업데이트" #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
-          socket_sender(self.박경희컴퓨터sock,작업방식,self.가구매작업데이터) #데이터를 보낸다.
-          
-          while True:
-            try:
-              if sokey_client.waitlist != None:
-                self.waitlist=outdata()
-                break
-            except:
-              time.sleep(1)
-              print("서버정보를 받아오는중입니다.")
-
-          print(self.waitlist)
-          self.serverinfo.inputwaitlist(self.waitlist)
-          self.serverinfo.waitlist_gui()
-          self.serverinfo.exec_()
-          작업방식="서버수정데이터" #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
-          socket_sender(self.박경희컴퓨터sock,작업방식,self.가구매작업데이터) #데이터를 보낸다.
-
+           서버창관리(self.박경희컴퓨터sock)
+    #       self.serverinfo=WaitlistDialog()
+    #       self.serverinfo.show()  
+    #       작업방식="서버정보업데이트" #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
+    #       socket_sender(self.박경희컴퓨터sock,작업방식,self.가구매작업데이터) #데이터를 보낸다.
+    # #-------------클라이언트 소켓에서 waitlist데이터를 로드한다.---------#
+    #       while True:
+    #         if sokey_client.waitlist != None:
+    #           self.waitlist=sokey_client.waitlist
+    #           break
+    #       #--------------#웨잇리스트로 gui를 구현한다.---------#
+    #       self.serverinfo.inputwaitlist(self.waitlist) 
+    #       self.serverinfo.waitlist_gui() 
+    #       self.serverinfo.exec_() 
+    # #------------서버일감 수정데이터를 보낸다.----------#
+    #       작업방식=self.serverinfo.request
+    #       if 작업방식=="서버수정데이터":
+    #         socket_sender(self.박경희컴퓨터sock,작업방식,self.가구매작업데이터) #데이터를 보낸다.
+    #         sokey_client.waitlist=None
+    #       elif 작업방식=="서버수정없음":
+    #         print("일감데이터 수정할게없다.")
+        
             
         def 두번째서버창():
            print(self.waitlist)

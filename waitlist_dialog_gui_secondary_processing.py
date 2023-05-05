@@ -19,6 +19,7 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
 
         #시그널과 슬롯을 연결한다.
         self.edit_request_btn.clicked.connect(self.edit_request)
+        self.cancle_btn.clicked.connect(self.closbty)
 
         #테이블 헤더 스타일 변경
         header = self.tableWidget.horizontalHeader()
@@ -37,6 +38,25 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
     
     def edit_request(self):
         print("수정요청을 하였습니다.")
+        row_count = self.tableWidget.rowCount()
+        column_count = self.tableWidget.columnCount()
+        #-------------수정요청시 값을 서버일감에 저장한다.-------#
+        for row in range(row_count):
+            for col in range(column_count):
+                item = self.tableWidget.item(row, col)
+                if col==0:
+                    cell_value = item.text()
+                    waitlist[row]["작업시간"]=cell_value
+                elif col==1:
+                    cell_value = item.text()
+                    waitlist[row]["플랫폼"]=cell_value
+                else:
+                    print(f"셀 ({row}, {col})은 비어있습니다.")
+        self.request="서버수정데이터"
+        self.close()
+    
+    def closbty(self):
+        self.request="서버수정없음"
         self.close()
 
     def keyPressEvent(self, event):
@@ -106,7 +126,7 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
         if not (0 <= index1 < len(lst)) or not (0 <= index2 < len(lst)):
             raise ValueError("인덱스가 리스트의 범위를 벗어났습니다.")
         lst[index1], lst[index2] = lst[index2], lst[index1]
-
+        
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

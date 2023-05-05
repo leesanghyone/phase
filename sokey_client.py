@@ -2,7 +2,7 @@ import socket,json,threading,time,datetime
 from PyQt5.QtWidgets import QTableWidgetItem
 # from excel import *
 
-# waitlist = []
+waitlist = None
 
 def initstater(ip=str,port=int):
     sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -53,7 +53,6 @@ def receiver(sock):
 
 #--------------데이터 보내는 파트.----------------------.
 def socket_sender(sock,작업방식,가구매작업데이터=None):
-    global waitlist
     ##--------------작업방식 데이터 보내기. ----------------------
     sock.sendall(작업방식.encode("utf-8"))
 
@@ -109,30 +108,3 @@ if __name__ == '__main__':
         socket_sender(박경희컴퓨터sock,작업방식,가구매작업데이터) #데이터를 보낸다.
 
        
-# def socket_editinfo_sender(sock,응답데이터,parent):
-#     #--------------수정 데이터 보내기. ----------------------
-#     sock.sendall(응답데이터.encode("utf-8"))
-#     print("수정데이터를 보냅니다.")
-#     if 응답데이터=="수정있음":
-#         row_count = parent.tableWidget.rowCount()
-#         column_count = parent.tableWidget.columnCount()
-#         #서버일감 수정사항을 저장한다.
-#         for row in range(len(waitlist)):
-#             for col in range(column_count):
-#                 item = parent.tableWidget.item(row, col)
-#                 if col==0:
-#                     cell_value = item.text()
-#                 elif col==1:
-#                     cell_value = item.text()
-#                     waitlist[row]["작업시간"]=cell_value
-#                 elif col==2:
-#                     cell_value = item.text()
-#                     waitlist[row]["플랫폼"]=cell_value
-#                 else:
-#                     print(f"셀 ({row}, {col})은 비어있습니다.")
-    
-#         #--------------인덱스 수정시 처리-------------------
-#         #안에서 인덱스를 수정하니까 그대로 쓰면될듯.
-#         #--------------삭제 데이터----------------------
-#         #어떻게, 삭제데이터를구분짓지?
-#         # sock.sendall(json.dumps(waitlist).encode("utf-8"))

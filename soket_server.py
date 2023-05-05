@@ -7,8 +7,7 @@ def initstater(ip=str,port=int):
     global waitlist,workerlist,쓰레드락
     #--------------사전준비 자료다.----------------------.
     waitlist=[{"url": "https://copang.com","작업시간" : "2023-05-04-23:42","플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : "2022-05-04-05:42","플랫폼" : "네이버"}]
-    # waitlist=[1,2,3]
-    # workerlist=[]
+    workerlist=[]
     쓰레드락=threading.Lock()
     #--------------실행자 함수다..----------------------.
     sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -50,7 +49,7 @@ def receiver(c_sock):
             수정데이터=json.loads(c_sock.recv(4000).decode("utf-8"))
             with 쓰레드락:
                 waitlist=수정데이터
-            # Time_manager() #시관관리자를 호출한다.
+            # Time_manager() #쓰레드로 새롭게 분배해줘야 한다.
             print(f"수정완료:{waitlist}")
 
         elif 작업방식=="서버간소화정보":
@@ -66,6 +65,7 @@ def receiver(c_sock):
 
 #--------------일을하는 작업자 파트.----------------------.
 def worker(c_sock):
+    global waitlist,workerlist
     #--------------받아온 자료로 일을 하는 파트다.----------------------.
         #-------------리소스 절약 파트다..------------------
     if len(workerlist)==0:
@@ -87,26 +87,28 @@ def worker(c_sock):
         msg="그냥 잘 배송해주면 좋구요."
         # coupang_start(url=url,minprice=minprice,maxprice=maxprice,page_view_time=page_view_time,moq=moq,jjim=jjim,optionmenus1=optionmenus1,optionmenus2=optionmenus2,jangbaguni=jangbaguni,point=point,msg=msg)
         #--------------작업한 녀석은 지워야 한다----------------------
-        workerlist.remove(work)
+        with 쓰레드락:
+            workerlist.remove(work)
         print("일감을 처리했습니다.")
 
     #--------------결과물을 클라측에 전송(엑셀자료)----------------------.
-    print("결과물을 클라측에 전송(엑셀자료)")
-    엑셀작업데이터={
-        "pc이름": pcname,
-        "플랫폼": "https://copang.com",
-        "카카오톡아이디": "https://copang.com",
-        "작업시간": "https://copang.com",
-        "상품명": "https://copang.com",
-        "금액": "https://copang.com",
-        "사용포인트": "https://copang.com",
-        "리뷰": "https://copang.com",
-    }
-    c_sock.sendall(json.dumps(엑셀작업데이터).encode("utf-8"))
-    print("결과물을 클라측에 전송(엑셀자료) 완료")
+    # print("결과물을 클라측에 전송(엑셀자료)")
+    # 엑셀작업데이터={
+    #     "pc이름": pcname,
+    #     "플랫폼": "https://copang.com",
+    #     "카카오톡아이디": "https://copang.com",
+    #     "작업시간": "https://copang.com",
+    #     "상품명": "https://copang.com",
+    #     "금액": "https://copang.com",
+    #     "사용포인트": "https://copang.com",
+    #     "리뷰": "https://copang.com",
+    # }
+    # c_sock.sendall(json.dumps(엑셀작업데이터).encode("utf-8"))
+    # print("결과물을 클라측에 전송(엑셀자료) 완료")
 
 #--------------타임매니저(웨잇리스트->워크리스트 일을 던져줌)----------
 def Time_manager():
+    global waitlist,workerlist
     while True:
         #-----------작업시간까지 대기하기----------
         with 쓰레드락:
