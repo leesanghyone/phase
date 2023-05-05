@@ -1,5 +1,4 @@
 import socket,json,threading,time,sys
-import socket,json,threading,time,sys
 from datetime import datetime
 # from Coupang_work_fungtion import *
 
@@ -7,8 +6,9 @@ from datetime import datetime
 def initstater(ip=str,port=int):
     global waitlist,workerlist,쓰레드락
     #--------------사전준비 자료다.----------------------.
-    waitlist=[{"url": "https://copang.com","작업시간" : "2023-05-04-23:42","플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : "2022-05-04-05:42","플랫폼" : "네이버"},{"url": "https://naver.com","작업시간" : "2022-05-04-05:42","플랫폼" : "네이버"}]
-    workerlist=[]
+    waitlist=[{"url": "https://copang.com","작업시간" : "2023-05-04-23:42","플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : "2022-05-04-05:42","플랫폼" : "네이버"}]
+    # waitlist=[1,2,3]
+    # workerlist=[]
     쓰레드락=threading.Lock()
     #--------------실행자 함수다..----------------------.
     sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -20,6 +20,7 @@ def initstater(ip=str,port=int):
     return c_sock
 #--------------리시버 파트이다.(데이터를 받음)----------------------.
 def receiver(c_sock):
+    global waitlist
     while True:
     #--------------가구매작업을 처리한다.---------------------.   
         작업방식=c_sock.recv(1024).decode("utf-8")
@@ -30,9 +31,6 @@ def receiver(c_sock):
                 waitlist.append(작업데이터)
             print("가구매작업을 데이터를 받았습니다.")
             print(작업데이터)
-
-            #소규모 상태창을 보내야 함.
-
     #--------------서버정보업데이트를 처리한다----------------------.            
         elif 작업방식=="서버정보업데이트":
             print("서버정보 업데이트를 클라이언트가 요청했습니다")
@@ -45,30 +43,22 @@ def receiver(c_sock):
                 server_waitlist=waitlist.copy()
             #원본 그대로 보내는 부분이다.
             보낼데이터=server_waitlist
-            c_sock.sendall(json.dumps(보낼데이터).encode("utf-8")) #work는 딕셔너리 형태다.[{ㄴㅇㄹㄴ},{ㄴㅇㄹㄴㅇㄹ},{ㄴㅇㄹㄴㅇㄹ}]
-          
-            # #--------------수정응답데이터를 받는다.----------------------.
-            # 응답데이터=c_sock.recv(1024).decode("utf-8")
-            # if 응답데이터=="수정없음":    
-            #     print("수정없음")
-            # #--------------수정사항을 수정한다.(내부값수정)----------------------.
-            # elif 응답데이터=="수정있음":
-            #     print("수정있음") 
-            #     수정데이터=json.loads(c_sock.recv(4000).decode("utf-8"))
-            #     with 쓰레드락:
-            #         waitlist=수정데이터
-            #     Time_manager() #시관관리자를 호출한다.
-              
-            #--------------수정사항을 수정한다.(내부값수정)----------------------.
-            # else:
-            #     print("서버정보업데이트 수정파트에서 문제가생김")
-
+            c_sock.sendall(json.dumps(보낼데이터).encode("utf-8"))
         
-        elif 작업방식=="서버간소화정보":
-            print("서버 간소화 정보 전달.")
+        elif 작업방식=="서버수정데이터":  
+            print("서버수정데이터를 받았습니다")
+            수정데이터=json.loads(c_sock.recv(4000).decode("utf-8"))
             with 쓰레드락:
-                보낼데이터=len(server_waitlist)
-            c_sock.sendall((보낼데이터).encode("utf-8"))
+                waitlist=수정데이터
+            # Time_manager() #시관관리자를 호출한다.
+            print(f"수정완료:{waitlist}")
+
+        elif 작업방식=="서버간소화정보":
+            c_sock.sendall("서버간소화정보".encode("utf-8"))
+            with 쓰레드락:
+                보낼데이터=str(len(waitlist))
+                print(f"서버간소화정보:{보낼데이터}")
+            c_sock.send((보낼데이터).encode("utf-8"))
 
         else:
             print("작업방식이 잘못되었습니다.")
@@ -120,7 +110,7 @@ def Time_manager():
     while True:
         #-----------작업시간까지 대기하기----------
         with 쓰레드락:
-            예약시간=waitlist[0]["작업시간"]
+            예약시간=str(waitlist[0]["작업시간"])
         작업대기시간=예약시간-datetime.now()
         time.sleep(작업대기시간)
         #-----------변경사항 없는지 체크하기.----------
@@ -132,6 +122,7 @@ def Time_manager():
         #-----------워크리스트로 일감 던지기.----------
         workerlist.append(일감)
 
+
     
 #--------------실행을 쉽게 도와주는 함수다.----------------------.
 def socket_start(ip=str,port=int,workcomname=str):
@@ -139,10 +130,9 @@ def socket_start(ip=str,port=int,workcomname=str):
     pcname=workcomname
     c_sock=initstater(ip,port)
     threading.Thread(target=receiver,args=(c_sock,)).start()
-    threading.Thread(target=worker,args=(c_sock,)).start()
-    threading.Thread(target=Time_manager).start()
+    # threading.Thread(target=worker,args=(c_sock,)).start()
+    # threading.Thread(target=Time_manager).start()
 
 #--------------사용설명을 도와주는 파트다.----------------------.
 if __name__ == '__main__':
     socket_start("127.0.0.1",12000)
-

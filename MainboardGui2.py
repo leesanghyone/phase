@@ -40,28 +40,28 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
         def 박경희서버창():
           self.serverinfo=WaitlistDialog()
           self.serverinfo.show()  
-          # 작업방식="가구매작업" #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
-          # socket_sender(self.박경희컴퓨터sock,작업방식,self.가구매작업데이터) #데이터를 보낸다.
           작업방식="서버정보업데이트" #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
           socket_sender(self.박경희컴퓨터sock,작업방식,self.가구매작업데이터) #데이터를 보낸다.
-          time.sleep(2)
+          
           while True:
             try:
-              outputdata()
-              self.test1=sokey_client.waitlist
-              print(self.test1)
-              self.serverinfo.inputwaitlist(self.test1)
-              self.serverinfo.waitlist_gui()
-              break
+              if sokey_client.waitlist != None:
+                self.waitlist=outdata()
+                break
             except:
-              pass
-            self.serverinfo.exec_()
-            print(self.test1)
+              time.sleep(1)
+              print("서버정보를 받아오는중입니다.")
 
-          # self.serverinfo.tableWidget.keyPressEvent=self.serverinfo.keyPressEvent(waitlist=self.test1)
-          # self.serverinfo.keyPressEvent(waitlist=self.test1)
+          print(self.waitlist)
+          self.serverinfo.inputwaitlist(self.waitlist)
+          self.serverinfo.waitlist_gui()
+          self.serverinfo.exec_()
+          작업방식="서버수정데이터" #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
+          socket_sender(self.박경희컴퓨터sock,작업방식,self.가구매작업데이터) #데이터를 보낸다.
+
+            
         def 두번째서버창():
-           print(self.test1)
+           print(self.waitlist)
 
   #----------------------작업방식 기능함수.----------------------#
         def 구매조건():

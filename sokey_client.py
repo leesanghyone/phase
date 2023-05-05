@@ -2,6 +2,8 @@ import socket,json,threading,time,datetime
 from PyQt5.QtWidgets import QTableWidgetItem
 # from excel import *
 
+# waitlist = []
+
 def initstater(ip=str,port=int):
     sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     sock.connect((ip,port))
@@ -37,56 +39,21 @@ def receiver(sock):
         elif 작업종류설정=="서버정보업데이트":
             #--------------서버일감 데이터 받기----------------------.
             waitlist=sock.recv(8000).decode("utf-8")
+            waitlist=json.loads(waitlist) 
             print("서버정보 업데이트 데이터를 받았습니다.")
-            waitlist=json.loads(waitlist) #waitlist는 [{딕셔너리1},{딕셔너리2}]
-            # print(waitlist)
-            # ##--------------.GUi로 화면 구성함 테이블 위젯.------------
-            # if parent!=None:
-            #     parent.tableWidget.setRowCount(len(waitlist))
-            #     for i in range(len(waitlist)):
-            #         parent.tableWidget.setItem(i,0,QTableWidgetItem(f"{i+1}"))
-            #         parent.tableWidget.setItem(i,1,QTableWidgetItem(waitlist[i]["작업시간"]))
-            #         parent.tableWidget.setItem(i,2,QTableWidgetItem(waitlist[i]["플랫폼"]))
+            print(waitlist)
+    
+        elif 작업종류설정=="서버간소화정보":
+            응답데이터=sock.recv(1024).decode("utf-8")
+            print(f"서버간소화정보를 받았습니다.응답:{응답데이터}")
+          
         else:
             print(f"작업종류설정이 잘못들어왔습니다.{작업종류설정}")
             time.sleep(1)
 
-def outputdata():
-    global waitlist
-    return waitlist
-
-
-def socket_editinfo_sender(sock,응답데이터,parent):
-    #--------------수정 데이터 보내기. ----------------------
-    sock.sendall(응답데이터.encode("utf-8"))
-    print("수정데이터를 보냅니다.")
-    if 응답데이터=="수정있음":
-        row_count = parent.tableWidget.rowCount()
-        column_count = parent.tableWidget.columnCount()
-        #서버일감 수정사항을 저장한다.
-        for row in range(len(waitlist)):
-            for col in range(column_count):
-                item = parent.tableWidget.item(row, col)
-                if col==0:
-                    cell_value = item.text()
-                elif col==1:
-                    cell_value = item.text()
-                    waitlist[row]["작업시간"]=cell_value
-                elif col==2:
-                    cell_value = item.text()
-                    waitlist[row]["플랫폼"]=cell_value
-                else:
-                    print(f"셀 ({row}, {col})은 비어있습니다.")
-    
-        #--------------인덱스 수정시 처리-------------------
-        #안에서 인덱스를 수정하니까 그대로 쓰면될듯.
-        #--------------삭제 데이터----------------------
-        #어떻게, 삭제데이터를구분짓지?
-        # sock.sendall(json.dumps(waitlist).encode("utf-8"))
-
-
 #--------------데이터 보내는 파트.----------------------.
 def socket_sender(sock,작업방식,가구매작업데이터=None):
+    global waitlist
     ##--------------작업방식 데이터 보내기. ----------------------
     sock.sendall(작업방식.encode("utf-8"))
 
@@ -97,10 +64,19 @@ def socket_sender(sock,작업방식,가구매작업데이터=None):
         sock.sendall(json.dumps(가구매작업데이터).encode("utf-8"))
 
     ##--------------2.서버정보업데이트 정보 요청하기 ----------------------
-    if 작업방식 == "서버정보업데이트":
-        print("서버정보업데이트 정보요청을 보냈습니다..")
+    elif 작업방식 == "서버정보업데이트":
+        print("서버정보업데이트 정보요청을 보냈습니다")
 
+    elif 작업방식 == "서버수정데이터":
+        print("서버정보업데이트 수정데이터를 보냈습니다")
+        sock.sendall(json.dumps(waitlist).encode("utf-8"))
+    
+    elif 작업방식 == "서버간소화정보":
+        print("서버간소화정보를 보냈습니다.")
 
+def outdata():
+    global waitlist
+    return waitlist
 #--------------쉽게 사용하기 위한 함수.----------------------.
 def soket_start(ip,port):
     sock=initstater(ip,port)
@@ -127,9 +103,36 @@ if __name__ == '__main__':
             "구매수량" : 1,
             "배송메세지" : "그냥 배송 잘 부탁드려요."
         }
-    박경희컴퓨터sock=soket_start("127.0.0.1",12000,None) #한번실행되면 계속 연결을 유지한다.
+    박경희컴퓨터sock=soket_start("127.0.0.1",12000) #한번실행되면 계속 연결을 유지한다.
     while True: #테스트 때문에 필요한것이다.
         작업방식=input("작업방식을 설정해주세요:") #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
         socket_sender(박경희컴퓨터sock,작업방식,가구매작업데이터) #데이터를 보낸다.
-       
 
+       
+# def socket_editinfo_sender(sock,응답데이터,parent):
+#     #--------------수정 데이터 보내기. ----------------------
+#     sock.sendall(응답데이터.encode("utf-8"))
+#     print("수정데이터를 보냅니다.")
+#     if 응답데이터=="수정있음":
+#         row_count = parent.tableWidget.rowCount()
+#         column_count = parent.tableWidget.columnCount()
+#         #서버일감 수정사항을 저장한다.
+#         for row in range(len(waitlist)):
+#             for col in range(column_count):
+#                 item = parent.tableWidget.item(row, col)
+#                 if col==0:
+#                     cell_value = item.text()
+#                 elif col==1:
+#                     cell_value = item.text()
+#                     waitlist[row]["작업시간"]=cell_value
+#                 elif col==2:
+#                     cell_value = item.text()
+#                     waitlist[row]["플랫폼"]=cell_value
+#                 else:
+#                     print(f"셀 ({row}, {col})은 비어있습니다.")
+    
+#         #--------------인덱스 수정시 처리-------------------
+#         #안에서 인덱스를 수정하니까 그대로 쓰면될듯.
+#         #--------------삭제 데이터----------------------
+#         #어떻게, 삭제데이터를구분짓지?
+#         # sock.sendall(json.dumps(waitlist).encode("utf-8"))

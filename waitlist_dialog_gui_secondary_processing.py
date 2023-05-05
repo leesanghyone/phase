@@ -94,7 +94,7 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
 
     def inputwaitlist(self,data):
         global waitlist
-        waitlist =data
+        waitlist=data
 
     def waitlist_gui(self):
         self.tableWidget.setRowCount(len(waitlist))
@@ -106,10 +106,6 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
         if not (0 <= index1 < len(lst)) or not (0 <= index2 < len(lst)):
             raise ValueError("인덱스가 리스트의 범위를 벗어났습니다.")
         lst[index1], lst[index2] = lst[index2], lst[index1]
-
-
-    def outputwaitlist(self):
-        return waitlist
 
 
 if __name__ == "__main__":
