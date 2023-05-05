@@ -70,6 +70,7 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         #종료를 한다.
         self.close()
        
+ 
     
 if __name__ == '__main__':
     app=QApplication(sys.argv)

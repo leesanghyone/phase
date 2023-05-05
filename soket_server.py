@@ -7,7 +7,7 @@ from datetime import datetime
 def initstater(ip=str,port=int):
     global waitlist,workerlist,쓰레드락
     #--------------사전준비 자료다.----------------------.
-    waitlist=[{"url": "https://copang.com","작업시간" : "100000","플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : "20000","플랫폼" : "네이버"}]
+    waitlist=[{"url": "https://copang.com","작업시간" : "2023-05-04-23:42","플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : "2022-05-04-05:42","플랫폼" : "네이버"},{"url": "https://naver.com","작업시간" : "2022-05-04-05:42","플랫폼" : "네이버"}]
     workerlist=[]
     쓰레드락=threading.Lock()
     #--------------실행자 함수다..----------------------.
@@ -47,13 +47,16 @@ def receiver(c_sock):
             보낼데이터=server_waitlist
             c_sock.sendall(json.dumps(보낼데이터).encode("utf-8")) #work는 딕셔너리 형태다.[{ㄴㅇㄹㄴ},{ㄴㅇㄹㄴㅇㄹ},{ㄴㅇㄹㄴㅇㄹ}]
           
-            #--------------수정응답데이터를 받는다.----------------------.
+            # #--------------수정응답데이터를 받는다.----------------------.
             # 응답데이터=c_sock.recv(1024).decode("utf-8")
             # if 응답데이터=="수정없음":    
             #     print("수정없음")
             # #--------------수정사항을 수정한다.(내부값수정)----------------------.
             # elif 응답데이터=="수정있음":
             #     print("수정있음") 
+            #     수정데이터=json.loads(c_sock.recv(4000).decode("utf-8"))
+            #     with 쓰레드락:
+            #         waitlist=수정데이터
             #     Time_manager() #시관관리자를 호출한다.
               
             #--------------수정사항을 수정한다.(내부값수정)----------------------.

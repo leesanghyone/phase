@@ -6,9 +6,10 @@ def initstater(ip=str,port=int):
     sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     sock.connect((ip,port))
     return sock
-    
+
+
 #--------------리시버 파트----------------------.
-def receiver(sock,parent=None):
+def receiver(sock):
     global waitlist
     while True:
         작업종류설정=sock.recv(1024).decode("utf-8")
@@ -35,22 +36,27 @@ def receiver(sock,parent=None):
     #--------------서버정보업데이트----------------------.
         elif 작업종류설정=="서버정보업데이트":
             #--------------서버일감 데이터 받기----------------------.
-            waitlist=sock.recv(4000).decode("utf-8")
+            waitlist=sock.recv(8000).decode("utf-8")
             print("서버정보 업데이트 데이터를 받았습니다.")
             waitlist=json.loads(waitlist) #waitlist는 [{딕셔너리1},{딕셔너리2}]
-            print(waitlist)
-        
-            ##--------------.GUi로 화면 구성함 테이블 위젯.------------
-            if parent!=None:
-                parent.tableWidget.setRowCount(len(waitlist))
-                for i in range(len(waitlist)):
-                    parent.tableWidget.setItem(i,0,QTableWidgetItem(f"{i}"))
-                    parent.tableWidget.setItem(i,1,QTableWidgetItem(waitlist[i]["작업시간"]))
-                    parent.tableWidget.setItem(i,2,QTableWidgetItem(waitlist[i]["플랫폼"]))
+            # print(waitlist)
+            # ##--------------.GUi로 화면 구성함 테이블 위젯.------------
+            # if parent!=None:
+            #     parent.tableWidget.setRowCount(len(waitlist))
+            #     for i in range(len(waitlist)):
+            #         parent.tableWidget.setItem(i,0,QTableWidgetItem(f"{i+1}"))
+            #         parent.tableWidget.setItem(i,1,QTableWidgetItem(waitlist[i]["작업시간"]))
+            #         parent.tableWidget.setItem(i,2,QTableWidgetItem(waitlist[i]["플랫폼"]))
         else:
-            print("작업종류설정이 잘못들어왔습니다.")
+            print(f"작업종류설정이 잘못들어왔습니다.{작업종류설정}")
+            time.sleep(1)
 
-def socket_edit_sender(sock,응답데이터,parent):
+def outputdata():
+    global waitlist
+    return waitlist
+
+
+def socket_editinfo_sender(sock,응답데이터,parent):
     #--------------수정 데이터 보내기. ----------------------
     sock.sendall(응답데이터.encode("utf-8"))
     print("수정데이터를 보냅니다.")
@@ -58,7 +64,7 @@ def socket_edit_sender(sock,응답데이터,parent):
         row_count = parent.tableWidget.rowCount()
         column_count = parent.tableWidget.columnCount()
         #서버일감 수정사항을 저장한다.
-        for row in range(row_count):
+        for row in range(len(waitlist)):
             for col in range(column_count):
                 item = parent.tableWidget.item(row, col)
                 if col==0:
@@ -71,7 +77,12 @@ def socket_edit_sender(sock,응답데이터,parent):
                     waitlist[row]["플랫폼"]=cell_value
                 else:
                     print(f"셀 ({row}, {col})은 비어있습니다.")
-    sock.sendall(json.dumps(waitlist).encode("utf-8"))
+    
+        #--------------인덱스 수정시 처리-------------------
+        #안에서 인덱스를 수정하니까 그대로 쓰면될듯.
+        #--------------삭제 데이터----------------------
+        #어떻게, 삭제데이터를구분짓지?
+        # sock.sendall(json.dumps(waitlist).encode("utf-8"))
 
 
 #--------------데이터 보내는 파트.----------------------.
@@ -91,9 +102,9 @@ def socket_sender(sock,작업방식,가구매작업데이터=None):
 
 
 #--------------쉽게 사용하기 위한 함수.----------------------.
-def soket_start(ip,port,parent):
+def soket_start(ip,port):
     sock=initstater(ip,port)
-    threading.Thread(target=receiver,args=(sock,parent)).start()
+    threading.Thread(target=receiver,args=(sock,)).start()
     return sock
     
 #--------------사용방법을 설명해놓음.----------------------.
