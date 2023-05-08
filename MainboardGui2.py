@@ -87,6 +87,9 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
         def 확인버튼():
           print("확인버튼눌림")
           socket_sender(self.박경희컴퓨터sock,"서버수정데이터")
+          if sokey_client.miniwaitlist != None:
+            미리보기데이터=sokey_client.miniwaitlist
+          
 
         #----------------------시그널 슬롯 연결----------------------#
         ###1.시그널 슬롯 연결
