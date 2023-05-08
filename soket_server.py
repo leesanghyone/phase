@@ -1,12 +1,12 @@
 import socket,json,threading,time,sys
-from datetime import datetime
+from datetime import datetime,timedelta
 # from Coupang_work_fungtion import *
 
 #--------------실행자 함수다..----------------------.
 def initstater(ip=str,port=int):
     global waitlist,workerlist,쓰레드락
     #--------------사전준비 자료다.----------------------.
-    waitlist=[{"url": "https://copang.com","작업시간" : "2023-05-04-23:42","플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : "2022-05-04-05:42","플랫폼" : "네이버"}]
+    waitlist=[{"url": "https://copang.com","작업시간" : (datetime.now()+timedelta(minutes=15)).strftime('%Y-%m-%d-%H:%M'),"플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : (datetime.now()+timedelta(minutes=30)).strftime('%Y-%m-%d-%H:%M'),"플랫폼" : "네이버"}]
     workerlist=[]
     쓰레드락=threading.Lock()
     #--------------실행자 함수다..----------------------.
@@ -55,6 +55,7 @@ def receiver(c_sock):
             #새로운 쓰레드 시작시키기.
             stop_event=threading.Event()
             time_thread=threading.Thread(target=Time_manager,args=(stop_event,))
+            time_thread.start()
             
         elif 작업방식=="서버간소화정보":
             c_sock.sendall("서버간소화정보".encode("utf-8"))
@@ -112,25 +113,41 @@ def worker(c_sock):
 
 #--------------타임매니저(웨잇리스트->워크리스트 일을 던져줌)----------
 def Time_manager(stop_event):
-    global waitlist,workerlist
+    global waitlist, workerlist
+    print("타임매니저 초기 작동시작")
     while not stop_event.is_set():
+        print("타임매니저 작동중입니다.")
         #-----------작업시간까지 대기하기----------
         with 쓰레드락:
-            예약시간=str(waitlist[0]["작업시간"])
-        작업대기시간=예약시간-datetime.now()
+            if not waitlist:
+                print("대기 리스트가 비어있습니다. 대기 중...")
+                time.sleep(10)
+                continue
+            예약시간 = datetime.strptime(waitlist[0]["작업시간"], '%Y-%m-%d-%H:%M')
+            print(f"예약시간:{예약시간}")
+        작업대기시간 = (예약시간 - datetime.now()).total_seconds() // 60
+        if 작업대기시간 < 0:
+            작업대기시간 = 0
+        print(f"작업대기시간은 {작업대기시간}초 입니다.")
         time.sleep(작업대기시간)
+        #쓰레드 종료 장치 넣어둠.
+        print(stop_event.is_set())
+        if stop_event.is_set():
+            print("타임매니저 작동종료")
+            return
         #-----------변경사항 없는지 체크하기.----------
         with 쓰레드락:
-            if waitlist[0]["작업시간"]==예약시간:
-                일감=waitlist.pop(0)
+            if 예약시간 == datetime.strptime(waitlist[0]["작업시간"], '%Y-%m-%d-%H:%M'):
+                일감 = waitlist.pop(0)
+                print(waitlist)
                 workerlist.append(일감)
-            elif waitlist[0]["작업시간"]!=예약시간:
-                Time_manager()
-        #-----------워크리스트로 일감 던지기.----------
-        
+            else:
+                print("예약시간이 변경되었습니다. 다음 예약시간을 확인합니다.")
+                continue
 
 
-    
+
+
 #--------------실행을 쉽게 도와주는 함수다.----------------------.
 def socket_start(ip=str,port=int,workcomname=str):
     global pcname,stop_event
@@ -146,13 +163,11 @@ def socket_start(ip=str,port=int,workcomname=str):
     receiver_thred.start()
     worker_thred.start()
     Time_manager_thred.start()
+    print("쓰레드 시작 완료")
     
 
     
-
-
-
 
 #--------------사용설명을 도와주는 파트다.----------------------.
 if __name__ == '__main__':
-    socket_start("127.0.0.1",12000)
+    socket_start("127.0.0.1",12000,"박경희")

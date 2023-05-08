@@ -2,13 +2,11 @@ import socket,json,threading,time,datetime
 from PyQt5.QtWidgets import QTableWidgetItem
 # from excel import *
 
-waitlist = None
+
 
 def initstater(ip=str,port=int):
     sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     sock.connect((ip,port))
-    outip,outport=sock.getpeername() #연결된 대상의 ip와, 포트번호를 보여준다.
-    print(f"'{outip}'로 접속하였습니다, 포트는'{outport}'입니다")
     return sock
 
 
@@ -16,6 +14,7 @@ def initstater(ip=str,port=int):
 def receiver(sock):
     global waitlist,miniwaitlist
     miniwaitlist=None
+    waitlist=None
     while True:
         작업종류설정=sock.recv(1024).decode("utf-8")
         if 작업종류설정=="가구매작업":
@@ -47,10 +46,14 @@ def receiver(sock):
             print(waitlist)
     
         elif 작업종류설정=="서버간소화정보":
-            
+            miniwaitlist={}
             응답데이터=sock.recv(1024).decode("utf-8")
             print(f"서버간소화정보를 받았습니다.응답:{응답데이터}")
-            miniwaitlist=응답데이터
+            outip,outport=sock.getpeername() #연결된 대상의 ip와, 포트번호를 보여준다.
+            print(f"{outip}:{outport}에서 서버간소화정보를 받았습니다.")
+            miniwaitlist[outip]=응답데이터 #딕셔너리 값을 넣어준다.
+            print(miniwaitlist.get(outip))
+
         else:
             print(f"작업종류설정이 잘못들어왔습니다.{작업종류설정}")
             time.sleep(1)

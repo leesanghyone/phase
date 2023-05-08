@@ -35,11 +35,11 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
               "배송메세지" : "그냥 배송 잘 부탁드려요."
           }
   #-------------서버에서일 받아오고, 수정하고 보내는 역할을 해준다.--------#
-        def 서버창관리(soket):
+        def 서버일감불러오기(soket):
           self.serverinfo=WaitlistDialog()
           self.serverinfo.show()  
           작업방식="서버정보업데이트" #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
-          socket_sender(soket,작업방식,self.가구매작업데이터) #데이터를 보낸다.
+          socket_sender(soket,작업방식) #데이터를 보낸다.
     #-------------클라이언트 소켓에서 waitlist데이터를 로드한다.---------#
           while True:
             if sokey_client.waitlist != None:
@@ -50,25 +50,50 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           self.serverinfo.waitlist_gui() 
           self.serverinfo.exec_() 
     #------------서버일감 수정데이터를 보낸다.----------#
-          작업방식=self.serverinfo.request
-          if 작업방식=="서버수정데이터":
-            socket_sender(soket,작업방식) #데이터를 보낸다.
-            ##데이터초기화 하기
-            sokey_client.waitlist=None
-            self.waitlist=None
-          elif 작업방식=="서버수정없음":
-            print("일감데이터 수정할게없다.")
+          try:# 그냥 창 닫으면x 누르면 에러나서 만듬. 
+            작업방식=self.serverinfo.request
+            if 작업방식=="서버수정데이터":
+              socket_sender(soket,작업방식) #데이터를 보낸다.
+              ##데이터초기화 하기
+              sokey_client.waitlist=None
+              self.waitlist=None
+            elif 작업방식=="서버수정없음":
+              print("일감데이터 수정할게없다.")
+          except:
+             pass
+
+        def 서버미니정보얻기(sock,받아올서버아이피,btn):
+          #모든 서버에게 갱신요청을 보낸다.
+          socket_sender(self.박경희컴퓨터sock,"서버간소화정보")
+          while True:
+            try:
+              if len(sokey_client.miniwaitlist) >= 1: #서버가 1개이상이면
+                서버미니작업갯수=sokey_client.miniwaitlist
+                서버미니작업갯수=서버미니작업갯수.get(받아올서버아이피)
+                btn.setText(서버미니작업갯수)
+                break
+            except:
+              print("서버간소화정보를 받아오지 못했습니다.")
+              break
+
+        def 갱신버튼누름():
+          print("갱신버튼누름")
+          서버미니정보얻기(self.박경희컴퓨터sock,"127.0.0.1",self.server1_btn)
+
+
   #------------------작업컴퓨터 클리시 서버리스트창 켜는함수.----------#
         def 박경희서버창():
-           서버창관리(self.박경희컴퓨터sock)
+           서버일감불러오기(self.박경희컴퓨터sock)
              
         def 두번째서버창():
            print(self.waitlist)
 
   #----------------------작업방식 기능함수.----------------------#
+        
         def 구매조건():
           self.Platform_group.setEnabled(True)
           self.WorkCom_grop.setEnabled(True)
+
         def 리뷰업데이트():
           self.Platform_group.setEnabled(False)
           self.WorkCom_grop.setEnabled(False)
@@ -86,12 +111,12 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           self.WorkCom_grop.setEnabled(False)
         def 확인버튼():
           print("확인버튼눌림")
-          socket_sender(self.박경희컴퓨터sock,"서버수정데이터")
-          if sokey_client.miniwaitlist != None:
-            미리보기데이터=sokey_client.miniwaitlist
+          
           
 
         #----------------------시그널 슬롯 연결----------------------#
+        #기본적인기능
+        self.close_btn.clicked.connect(self.close)
         ###1.시그널 슬롯 연결
         self.purchasework_radiobtn.clicked.connect(구매조건)
         self.reviewupdate_radiobtn.clicked.connect(리뷰업데이트)
@@ -103,7 +128,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
         ###2.서버창켜는 슬롯.
         self.server1_btn.clicked.connect(박경희서버창)
         self.server2_btn.clicked.connect(두번째서버창)
-        
+        self.allserver_btn.clicked.connect(갱신버튼누름)
 
 
 if __name__=="__main__":
