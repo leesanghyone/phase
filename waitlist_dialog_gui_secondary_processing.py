@@ -32,9 +32,9 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
                 }
             """)
         #테스트용 나중에 지워도됨.
-        # self.tableWidget.setRowCount(5)
-        # self.tableWidget.setItem(0,0,QTableWidgetItem(f"슈바"))
-        # self.tableWidget.setItem(1,0,QTableWidgetItem(f"작당"))
+        self.tableWidget.setRowCount(5)
+        self.tableWidget.setItem(0,0,QTableWidgetItem(f"슈바"))
+        self.tableWidget.setItem(1,0,QTableWidgetItem(f"작당"))
     
     def edit_request(self):
         print("수정요청을 하였습니다.")
@@ -71,24 +71,26 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
                 self.tableWidget.removeRow(row)
         elif event.key() == QtCore.Qt.Key_W:
             current_row = self.tableWidget.currentRow()
-            try:
-                if current_row > 0:
+            if current_row > 0:
+                try:
                     self.swap_elements(waitlist,current_row,current_row-1)
-                    self.move_row(current_row, current_row - 1)
-                    self.tableWidget.setCurrentCell(current_row - 1, 0)
                     print(waitlist)
-            except:
-                pass
+                except:
+                    pass
+            self.move_row(current_row, current_row - 1)
+            self.tableWidget.setCurrentCell(current_row - 1, 0)
+       
         elif event.key() == QtCore.Qt.Key_S:
             current_row = self.tableWidget.currentRow()
-            try:
-                if current_row < len(waitlist)-1:
+            max_row = self.tableWidget.rowCount()
+            if current_row < max_row-1:
+                try:
                     self.swap_elements(waitlist,current_row,current_row+1)
-                    self.move_row(current_row, current_row + 1)
-                    self.tableWidget.setCurrentCell(current_row + 1, 0)
                     print(waitlist)
-            except:
-                pass
+                except:
+                    pass
+                self.move_row(current_row, current_row + 1)
+                self.tableWidget.setCurrentCell(current_row + 1, 0)
         elif event.key() == QtCore.Qt.Key_Up:
             self.tableWidget.selectRow(self.tableWidget.currentRow() - 1)
         elif event.key() == QtCore.Qt.Key_Down:

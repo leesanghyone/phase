@@ -19,7 +19,7 @@ def initstater(ip=str,port=int):
     return c_sock
 #--------------리시버 파트이다.(데이터를 받음)----------------------.
 def receiver(c_sock):
-    global waitlist
+    global waitlist,stop_event
     while True:
     #--------------가구매작업을 처리한다.---------------------.   
         작업방식=c_sock.recv(1024).decode("utf-8")
@@ -49,9 +49,13 @@ def receiver(c_sock):
             수정데이터=json.loads(c_sock.recv(4000).decode("utf-8"))
             with 쓰레드락:
                 waitlist=수정데이터
-            # Time_manager() #쓰레드로 새롭게 분배해줘야 한다.
             print(f"수정완료:{waitlist}")
-
+            #-------------작동중인 타임 쓰레드 멈추고 새롭게 갈아끼우기.--------------------.     
+            stop_event.set()
+            #새로운 쓰레드 시작시키기.
+            stop_event=threading.Event()
+            time_thread=threading.Thread(target=Time_manager,args=(stop_event,))
+            
         elif 작업방식=="서버간소화정보":
             c_sock.sendall("서버간소화정보".encode("utf-8"))
             with 쓰레드락:
@@ -107,9 +111,9 @@ def worker(c_sock):
     # print("결과물을 클라측에 전송(엑셀자료) 완료")
 
 #--------------타임매니저(웨잇리스트->워크리스트 일을 던져줌)----------
-def Time_manager():
+def Time_manager(stop_event):
     global waitlist,workerlist
-    while True:
+    while not stop_event.is_set():
         #-----------작업시간까지 대기하기----------
         with 쓰레드락:
             예약시간=str(waitlist[0]["작업시간"])
@@ -119,21 +123,35 @@ def Time_manager():
         with 쓰레드락:
             if waitlist[0]["작업시간"]==예약시간:
                 일감=waitlist.pop(0)
+                workerlist.append(일감)
             elif waitlist[0]["작업시간"]!=예약시간:
                 Time_manager()
         #-----------워크리스트로 일감 던지기.----------
-        workerlist.append(일감)
+        
 
 
     
 #--------------실행을 쉽게 도와주는 함수다.----------------------.
 def socket_start(ip=str,port=int,workcomname=str):
-    global pcname
+    global pcname,stop_event
+    #사전준비.
     pcname=workcomname
+    stop_event=threading.Event()
+    #실제 실행.
     c_sock=initstater(ip,port)
-    threading.Thread(target=receiver,args=(c_sock,)).start()
-    # threading.Thread(target=worker,args=(c_sock,)).start()
-    # threading.Thread(target=Time_manager).start()
+    receiver_thred=threading.Thread(target=receiver,args=(c_sock,))
+    worker_thred=threading.Thread(target=worker,args=(c_sock,))
+    Time_manager_thred=threading.Thread(target=Time_manager,args=(stop_event,))
+    #쓰레드 시작.
+    receiver_thred.start()
+    worker_thred.start()
+    Time_manager_thred.start()
+    
+
+    
+
+
+
 
 #--------------사용설명을 도와주는 파트다.----------------------.
 if __name__ == '__main__':
