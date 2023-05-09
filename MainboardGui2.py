@@ -62,14 +62,15 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           except:
              pass
 
-        def 서버미니정보얻기(sock,받아올서버아이피,btn):
+        def 서버미니정보얻기(sock,btn):
           #모든 서버에게 갱신요청을 보낸다.
-          socket_sender(self.박경희컴퓨터sock,"서버간소화정보")
+          socket_sender(sock,"서버간소화정보")
           while True:
             try:
               if len(sokey_client.miniwaitlist) >= 1: #서버가 1개이상이면
                 서버미니작업갯수=sokey_client.miniwaitlist
-                서버미니작업갯수=서버미니작업갯수.get(받아올서버아이피)
+                ip,port=sock.getpeername()
+                서버미니작업갯수=서버미니작업갯수.get(ip)
                 btn.setText(서버미니작업갯수)
                 break
             except:
@@ -78,7 +79,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
 
         def 갱신버튼누름():
           print("갱신버튼누름")
-          서버미니정보얻기(self.박경희컴퓨터sock,"127.0.0.1",self.server1_btn)
+          서버미니정보얻기(self.박경희컴퓨터sock,self.server1_btn)
 
 
   #------------------작업컴퓨터 클리시 서버리스트창 켜는함수.----------#
