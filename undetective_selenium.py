@@ -44,6 +44,8 @@ def make_driver():
         
         #드라이브 선언하기.
         driver=uc.Chrome(options=options)
+        
+
         return driver
     except:
         print("논값을 뱉어낸다")

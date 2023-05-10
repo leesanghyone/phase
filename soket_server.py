@@ -61,7 +61,7 @@ def receiver(c_sock):
             c_sock.sendall("서버간소화정보".encode("utf-8"))
             with 쓰레드락:
                 보낼데이터=str(len(waitlist))
-                print(f"서버간소화정보:{보낼데이터}")
+            print(f"서버간소화정보:{보낼데이터}")
             c_sock.send((보낼데이터).encode("utf-8"))
 
         else:
@@ -70,53 +70,63 @@ def receiver(c_sock):
 
 #--------------일을하는 작업자 파트.----------------------.
 def worker(c_sock):
-    global waitlist,workerlist
-    #--------------받아온 자료로 일을 하는 파트다.----------------------.
+    global workerlist
+    while True:
+        #--------------받아온 자료로 일을 하는 파트다.----------------------.
         #-------------리소스 절약 파트다..------------------
-    if len(workerlist)==0:
-        print("일감이 없어서 대기중입니다.")
-        time.sleep(5)
+        if len(workerlist)==0:
+            print("일감이 없어서 대기중입니다.")
+            time.sleep(10)
         #--------------실질적으로 일을하는 파트다.----------------------.
-    for work in workerlist:
-        print(work)
-        url=work["url"]
-        minprice=work["minprice"]
-        maxprice=work["maxprice"]
-        page_view_time= work["page_view_time"]
-        moq= work["moq"]
-        jjim= work["jjim"]
-        optionmenus1= work["optionmenus1"]
-        optionmenus2= work["optionmenus2"]
-        jangbaguni= work["jangbaguni"]
-        point= work["point"]
-        msg="그냥 잘 배송해주면 좋구요."
-        # coupang_start(url=url,minprice=minprice,maxprice=maxprice,page_view_time=page_view_time,moq=moq,jjim=jjim,optionmenus1=optionmenus1,optionmenus2=optionmenus2,jangbaguni=jangbaguni,point=point,msg=msg)
-        #--------------작업한 녀석은 지워야 한다----------------------
-        with 쓰레드락:
-            workerlist.remove(work)
-        print("일감을 처리했습니다.")
+        elif len(workerlist) >=1:
+            with 쓰레드락:
+                work=workerlist.pop(0)
+            url=work["url"]
+            print(f"작업중인 url:{url}")
+            # minprice=work["minprice"]
+            # maxprice=work["maxprice"]
+            # page_view_time= work["page_view_time"]
+            # moq= work["moq"]
+            # jjim= work["jjim"]
+            # optionmenus1= work["optionmenus1"]
+            # optionmenus2= work["optionmenus2"]
+            # jangbaguni= work["jangbaguni"]
+            # point= work["point"]
+            # msg="그냥 잘 배송해주면 좋구요."
+            # coupang_start(url=url,minprice=minprice,maxprice=maxprice,page_view_time=page_view_time,moq=moq,jjim=jjim,optionmenus1=optionmenus1,optionmenus2=optionmenus2,jangbaguni=jangbaguni,point=point,msg=msg)
+            # --------------작업한 녀석은 지워야 한다---------------------
+            print("일감을 처리했습니다.")
 
-    #--------------결과물을 클라측에 전송(엑셀자료)----------------------.
-    # print("결과물을 클라측에 전송(엑셀자료)")
-    # 엑셀작업데이터={
-    #     "pc이름": pcname,
-    #     "플랫폼": "https://copang.com",
-    #     "카카오톡아이디": "https://copang.com",
-    #     "작업시간": "https://copang.com",
-    #     "상품명": "https://copang.com",
-    #     "금액": "https://copang.com",
-    #     "사용포인트": "https://copang.com",
-    #     "리뷰": "https://copang.com",
-    # }
-    # c_sock.sendall(json.dumps(엑셀작업데이터).encode("utf-8"))
-    # print("결과물을 클라측에 전송(엑셀자료) 완료")
+
+            #--------------결과물을 클라측에 전송(엑셀자료)----------------------.
+            # print("결과물을 클라측에 전송(엑셀자료)")
+            # 엑셀작업데이터={
+            #     "pc이름": pcname,
+            #     "플랫폼": "https://copang.com",
+            #     "카카오톡아이디": "https://copang.com",
+            #     "작업시간": "https://copang.com",
+            #     "상품명": "https://copang.com",
+            #     "금액": "https://copang.com",
+            #     "사용포인트": "https://copang.com",
+            #     "리뷰": "https://copang.com",
+            # }
+            # c_sock.sendall(json.dumps(엑셀작업데이터).encode("utf-8"))
+            # print("결과물을 클라측에 전송(엑셀자료) 완료")
+
+            #--------------결과물을 클라측에 전송(엑셀자료)----------------------.
+            #클라이언츠측에 서버간소화정보를 보내준다.
+            c_sock.sendall("서버간소화정보".encode("utf-8"))
+            with 쓰레드락:
+                보낼데이터=str(len(waitlist))
+                print(f"서버간소화정보:{보낼데이터}")
+            c_sock.send((보낼데이터).encode("utf-8"))
 
 #--------------타임매니저(웨잇리스트->워크리스트 일을 던져줌)----------
 def Time_manager(stop_event):
     global waitlist, workerlist
     print("타임매니저 초기 작동시작")
     while not stop_event.is_set():
-        print("타임매니저 작동중입니다.")
+        print("타임매니저 무한 작동중")
         #-----------작업시간까지 대기하기----------
         with 쓰레드락:
             if not waitlist:
@@ -131,7 +141,6 @@ def Time_manager(stop_event):
         print(f"작업대기시간은 {작업대기시간}초 입니다.")
         time.sleep(작업대기시간)
         #쓰레드 종료 장치 넣어둠.
-        print(stop_event.is_set())
         if stop_event.is_set():
             print("타임매니저 작동종료")
             return
@@ -139,13 +148,10 @@ def Time_manager(stop_event):
         with 쓰레드락:
             if 예약시간 == datetime.strptime(waitlist[0]["작업시간"], '%Y-%m-%d-%H:%M'):
                 일감 = waitlist.pop(0)
-                print(waitlist)
                 workerlist.append(일감)
             else:
                 print("예약시간이 변경되었습니다. 다음 예약시간을 확인합니다.")
                 continue
-
-
 
 
 #--------------실행을 쉽게 도와주는 함수다.----------------------.
@@ -166,7 +172,6 @@ def socket_start(ip=str,port=int,workcomname=str):
     print("쓰레드 시작 완료")
     
 
-    
 
 #--------------사용설명을 도와주는 파트다.----------------------.
 if __name__ == '__main__':

@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-
+from PyQt5.QtCore import QTime, Qt
 
 class Ui_C_inputDialog(object):
     def setupUi(self, C_inputDialog):
@@ -180,6 +180,7 @@ class Ui_C_inputDialog(object):
         self.url1_inputEdit = QtWidgets.QLineEdit(self.input_group)
         self.url1_inputEdit.setGeometry(QtCore.QRect(60, 30, 361, 21))
         self.url1_inputEdit.setObjectName("url1_inputEdit")
+        
 
         self.retranslateUi(C_inputDialog)
         QtCore.QMetaObject.connectSlotsByName(C_inputDialog)
@@ -213,7 +214,7 @@ class Ui_C_inputDialog(object):
         self.close_btn.setText(_translate("C_inputDialog", "취소"))
         self.input_group.setTitle(_translate("C_inputDialog", "입력정보"))
         self.URL1_label.setText(_translate("C_inputDialog", "URL :"))
-  
+       
         
 
 if __name__ == "__main__":

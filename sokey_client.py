@@ -11,7 +11,7 @@ def initstater(ip=str,port=int):
 
 
 #--------------리시버 파트----------------------.
-def receiver(sock):
+def receiver(sock,guiparent=None):
     global waitlist,miniwaitlist
     miniwaitlist=None
     waitlist=None
@@ -44,16 +44,20 @@ def receiver(sock):
             waitlist=json.loads(waitlist) 
             print("서버정보 업데이트 데이터를 받았습니다.")
             print(waitlist)
-    
+        
         elif 작업종류설정=="서버간소화정보":
-            miniwaitlist={}
+            # miniwaitlist={}
             응답데이터=sock.recv(1024).decode("utf-8")
             print(f"서버간소화정보를 받았습니다.응답:{응답데이터}")
             outip,outport=sock.getpeername() #연결된 대상의 ip와, 포트번호를 보여준다.
             print(f"{outip}:{outport}에서 서버간소화정보를 받았습니다.")
-            miniwaitlist[outip]=응답데이터 #딕셔너리 값을 넣어준다.
-            print(miniwaitlist.get(outip))
-
+            # miniwaitlist[outip]=응답데이터 #딕셔너리 값을 넣어준다.
+            # print(miniwaitlist.get(outip))
+            
+            #+++++컴퓨터 추가시 추가작업+++++
+            if guiparent != None:
+                if outip=="127.0.0.1":
+                    guiparent.server1_btn.setText(응답데이터)
         else:
             print(f"작업종류설정이 잘못들어왔습니다.{작업종류설정}")
             time.sleep(1)
@@ -84,9 +88,9 @@ def outdata():
     global waitlist
     return waitlist
 #--------------쉽게 사용하기 위한 함수.----------------------.
-def soket_start(ip,port):
+def soket_start(ip,port,guiparent=None):
     sock=initstater(ip,port)
-    threading.Thread(target=receiver,args=(sock,)).start()
+    threading.Thread(target=receiver,args=(sock,guiparent)).start()
     return sock
     
 #--------------사용방법을 설명해놓음.----------------------.
