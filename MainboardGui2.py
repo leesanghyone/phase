@@ -12,6 +12,24 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
         super().__init__()
         self.setupUi(self)
         self.initsiganal()
+        self.initinputdata()
+
+
+    def initinputdata(self):
+      self.url1=None
+      self.url2=None
+      self.작업시간=None
+      self.포인트=None
+      self.장바구니=None
+      self.구매수량=None
+      self.체류시간=None
+      self.옵션1=None
+      self.옵션2=None
+      self.찜작업=None
+      self.최소가격=None
+      self.최대가격=None
+      self.배송메세지=None
+
 
     def initsiganal(self):
   #------------------소켓활성화 함수들----------#
@@ -115,7 +133,6 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           
   #----------------------데이터 인풋받는 창----------------------#
         def 쿠팡데이터입력창():
-
           if self.platform_check_naver.isChecked():
             coupang_input=Coupang_inputData_Gui()
             coupang_input.show()
@@ -135,7 +152,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
             self.최대가격=coupang_input.최대가격
             self.배송메세지=coupang_input.배송메세지
             print(self.url1,self.url2,self.작업시간,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지)
-         
+
 
 
         #----------------------시그널 슬롯 연결----------------------#

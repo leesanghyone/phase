@@ -86,22 +86,23 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         #2.작업시간, 예약시간 필터링.
         if self.workinter_checkbox.isChecked() == False:
             self.작업간격=0
+        #3.작업시간 유효성검사.
         if self.Reservationtime_checkbox.isChecked() == False:
-            self.작업시간=None
+            self.작업시간=datetime.now().strftime("%Y-%m-%d-%H:%M")
         elif self.Reservationtime_checkbox.isChecked() == True:
             #예약시간만들기.(데이트타임 객체화 시킨다.)
             현재시간재료=datetime.strptime(self.예약시간,"%H:%M") #시간,분만 객체화(년,월,일이 없다.)
             현재시간=datetime.now() 
             self.작업시간=현재시간재료.replace(year=현재시간.year,month=현재시간.month,day=현재시간.day).strftime("%Y-%m-%d-%H:%M")
 
-        #3.url필터링
+        #4.url필터링
         if self.url1.find("srp_product_ads&clickEventId") != -1:
             QMessageBox.warning(self,"광고상품링크","당신의 url은 광고상품이에요.")
         
         #테스트를 위한 출력.
-        # print("쿠팡입력데이터:",self.url1,self.url2,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지,self.작업시간)
+        print("쿠팡입력데이터:",self.url1,self.url2,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지,self.작업시간)
         #종료를 한다.
-        self.close()
+        # self.close()
         
         
         
