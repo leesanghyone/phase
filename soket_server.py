@@ -129,12 +129,14 @@ def Time_manager(stop_event):
         print("타임매니저 무한 작동중")
         #-----------작업시간까지 대기하기----------
         with 쓰레드락:
-            if not waitlist:
-                print("대기 리스트가 비어있습니다. 대기 중...")
-                time.sleep(10)
-                continue
-            예약시간 = datetime.strptime(waitlist[0]["작업시간"], '%Y-%m-%d-%H:%M')
-            print(f"예약시간:{예약시간}")
+            waitlistcopy=waitlist.copy() #속도를 빠르게 하기 위해서, 본체를 쓰면 그만큼 묶인다.
+            # 비어있다면, 10초 있다가.
+        if not waitlistcopy:
+            print("대기 리스트가 비어있습니다. 대기 중...")
+            time.sleep(10)
+            continue
+        예약시간 = datetime.strptime(waitlistcopy[0]["작업시간"], '%Y-%m-%d-%H:%M')
+        print(f"예약시간:{예약시간}")
         작업대기시간 = (예약시간 - datetime.now()).total_seconds() // 60
         if 작업대기시간 < 0:
             작업대기시간 = 0

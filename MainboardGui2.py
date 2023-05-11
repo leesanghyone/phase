@@ -178,9 +178,9 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
                 #------------------작업컴퓨터 간소화 정보 받기..------------------
               for 작업컴 in 작업컴퓨터리스트:
                 socket_sender(작업컴,"서버간소화정보")
-                
-                
-          
+              #초기화작업
+              self.initinputdata()
+                        
   #----------------------데이터 인풋받는 창----------------------#
         def 쿠팡데이터입력창():
           if self.platform_check_coopang.isChecked():
@@ -192,7 +192,10 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
             self.url2=coupang_input.url2
             self.플랫폼=coupang_input.플랫폼
             self.카카오톡="개발중"
-            self.작업시간=datetime.strptime(coupang_input.작업시간,"%Y-%m-%d-%H:%M")   
+            try: #그냥 x누를시, 값이 선언이 안되어서 트라이처리.
+              self.작업시간=datetime.strptime(coupang_input.작업시간,"%Y-%m-%d-%H:%M")
+            except:
+              self.작업시간=None
             self.알림받기=coupang_input.알림받기
             self.포인트=coupang_input.포인트
             self.장바구니=coupang_input.장바구니
@@ -205,16 +208,9 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
             self.최대가격=coupang_input.최대가격
             self.배송메세지=coupang_input.배송메세지
             print(self.url1,self.url2,self.작업시간,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지)
-
             #필수데이터 항목이 아닌경우다.
             self.컴작업간격=coupang_input.컴작업간격  #2개이상의 컴퓨터 작업시만 필요하다.
-            # 시간=self.작업시간+timedelta(minutes=15)
-            # print(시간)
-            # 일단시간=datetime.strftime((self.작업시간+datetime.timedelta(minutes=self.컴작업간격*1)),"%Y-%m-%d-%H:%M")
-            # 일단시간=datetime.strftime((self.작업시간+timedelta(minutes=self.컴작업간격*1)),"%Y-%m-%d-%H:%M")
-            # datetime.strftime((self.작업시간+timedelta(minutes=self.컴작업간격*작업컴퓨터리스트.index(작업컴))),"%Y-%m-%d-%H:%M")
-            # print(일단시간)
-
+        
         #----------------------시그널 슬롯 연결----------------------#
         #기본적인기능
         self.close_btn.clicked.connect(self.close)

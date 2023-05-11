@@ -28,6 +28,7 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         self.url1=None
         self.url2=None
         self.포인트=None
+        self.플랫폼=None
         self.장바구니=None
         self.구매수량=None
         self.체류시간=None
@@ -38,7 +39,9 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         self.최대가격=None
         self.배송메세지=None
         self.작업시간=None
-
+        self.알림받기=None
+        self.컴작업간격=None
+        
     def workinterbal(self):
         if self.workinter_checkbox.isChecked():
             self.workinterbal_label.setEnabled(True)
