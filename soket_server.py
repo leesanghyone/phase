@@ -6,7 +6,7 @@ from datetime import datetime,timedelta
 def initstater(ip=str,port=int):
     global waitlist,workerlist,쓰레드락
     #--------------사전준비 자료다.----------------------.
-    waitlist=[{"url": "https://copang.com","작업시간" : (datetime.now()+timedelta(minutes=15)).strftime('%Y-%m-%d-%H:%M'),"플랫폼" : "쿠팡"},{"url": "https://naver.com","작업시간" : (datetime.now()+timedelta(minutes=30)).strftime('%Y-%m-%d-%H:%M'),"플랫폼" : "네이버"}]
+    waitlist=[{"URL": "https://copang.com","작업시간" : (datetime.now()+timedelta(minutes=15)).strftime('%Y-%m-%d-%H:%M'),"플랫폼" : "쿠팡"},{"URL": "https://naver.com","작업시간" : (datetime.now()+timedelta(minutes=30)).strftime('%Y-%m-%d-%H:%M'),"플랫폼" : "네이버"}]
     workerlist=[]
     쓰레드락=threading.Lock()
     #--------------실행자 함수다..----------------------.
@@ -53,7 +53,7 @@ def receiver(c_sock):
             #-------------작동중인 타임 쓰레드 멈추고 새롭게 갈아끼우기.--------------------.     
             stop_event.set()
             #새로운 쓰레드 시작시키기.
-            stop_event=threading.Event()
+            stop_event=threading.Event() #새롭게 변수에 들어가도, 쓰레드에 들어간 쓰레드이벤트는 사라지지않는다.
             time_thread=threading.Thread(target=Time_manager,args=(stop_event,))
             time_thread.start()
             
@@ -81,7 +81,7 @@ def worker(c_sock):
         elif len(workerlist) >=1:
             with 쓰레드락:
                 work=workerlist.pop(0)
-            url=work["url"]
+            url=work["URL"]
             print(f"작업중인 url:{url}")
             # minprice=work["minprice"]
             # maxprice=work["maxprice"]

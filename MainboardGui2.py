@@ -1,11 +1,12 @@
-import sys 
+import sys , random
 from PyQt5.QtWidgets  import*
 from PyQt5.QtCore import* 
 from maingui import Ui_mainWindow
 from coupang_input_Gui_secondary_processing import * 
 from sokey_client import *
-import sokey_client 
+import sokey_client
 from waitlist_dialog_gui_secondary_processing import WaitlistDialog
+from datetime import datetime,timedelta
 
 class Main_Gui(QMainWindow,Ui_mainWindow):
     def __init__(self):
@@ -16,9 +17,13 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
 
 
     def initinputdata(self):
+      #가구매 작업의 필수데이터.
       self.url1=None
       self.url2=None
+      self.플랫폼=None
+      self.카카오톡=None
       self.작업시간=None
+      self.알림받기=None
       self.포인트=None
       self.장바구니=None
       self.구매수량=None
@@ -29,29 +34,17 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
       self.최소가격=None
       self.최대가격=None
       self.배송메세지=None
-
+      self.유효성검사= lambda :[self.url1,self.url2,self.플랫폼,self.카카오톡,self.작업시간,self.알림받기,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지]
+      #가구매 작업의 선택데이터.
+      self.컴작업간격=None
 
     def initsiganal(self):
   #------------------소켓활성화 함수들----------#
-        # self.박경희컴퓨터sock=soket_start("127.0.0.1",12000,self) #한번실행되면 계속 연결을 유지한다. 
-        self.가구매작업데이터={ 
-              "URL": "Https://copang",
-              "URL2" : "공백",
-              "플랫폼" : "쿠팡",
-              "카카오톡" : "개발중",
-              "작업시간" : datetime.datetime.now().strftime('%Y-%m-%d-%H:%M'),
-              "장바구니" : False,
-              "포인트" : False,
-              "최소가격" : 10000,
-              "최대가격" : 10000,
-              "찜작업" : True,
-              "알림받기" : False,
-              "페이지체류시간" : 130,
-              "옵션1" : [["블랙,""화이트","그레이"]],
-              "옵션2" : 3,
-              "구매수량" : 1,
-              "배송메세지" : "그냥 배송 잘 부탁드려요."
-          }
+        try:
+          self.박경희컴퓨터sock=soket_start("127.0.0.1",12000,self) #한번실행되면 계속 연결을 유지한다.
+        except:
+          pass
+
   #-------------서버에서일 받아오고, 수정하고 보내는 역할을 해준다.--------#
         def 서버일감불러오기(soket):
           self.serverinfo=WaitlistDialog()
@@ -128,19 +121,79 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
         def 계좌업데이트():
           self.Platform_group.setEnabled(False)
           self.WorkCom_grop.setEnabled(False)
+        
+        ###컴퓨터 추가시+++작업필요함.
         def 확인버튼():
-          print("확인버튼눌림")
+              #------------------작업할 컴퓨터 체크하기.-------------------#
+              작업컴퓨터리스트=[]
+              #모든 컴퓨터를 작업을 진행한다.
+              if self.all_check_btn.isChecked():
+                print("모든 컴퓨터가 가구매 작업을 진행합니다.")
+                pass
+              #체크된 컴퓨터만 작업을 진행한다.
+              elif not self.all_check_btn.isChecked():
+                print("체크된 컴퓨터만 가구매 작업을 진행합니다.")
+                if self.parck_check_btn.isChecked():
+                  작업컴퓨터리스트.append(self.박경희컴퓨터sock)
+                if self.itw_check_btn.isChecked():
+                  작업컴퓨터리스트.append("임태원테스트")
+                if self.sangjun_check_btn.isChecked():
+                  작업컴퓨터리스트.append("테스트")
+                if self.sanghyone_check_btn.isChecked():
+                  작업컴퓨터리스트.append("테스트")
+              random.shuffle(작업컴퓨터리스트) #작업컴퓨터 무작위로 순서 바꾸기.
+              print(작업컴퓨터리스트)
+              #------------------가구매 데이터 유효성 검사--------------------#
+              print("유효성검사를 시작합니다.")
+              print(self.유효성검사())
+    
+              print("유효성검사 리스트 끝.")
+              for 가구매데이터 in self.유효성검사():
+                print(가구매데이터)
+                if 가구매데이터 == None:
+                  QMessageBox.warning(self,"경고","데이터를 입력해주세요.")
+                  return
+              #------------------가구매 데이터 작업컴에 보내기.------------------#
+              for 작업컴 in 작업컴퓨터리스트:
+                가구매작업데이터={ 
+                "URL": self.url1,
+                "URL2" : self.url2,
+                "플랫폼" : self.플랫폼,
+                "카카오톡" : self.카카오톡,
+                "작업시간" : datetime.strftime((self.작업시간+timedelta(minutes=self.컴작업간격*작업컴퓨터리스트.index(작업컴))),"%Y-%m-%d-%H:%M"), #받아온데이터->객체화->시간더하기->문자열로변환
+                "장바구니" : self.장바구니,
+                "포인트" : self.포인트,
+                "최소가격" : self.최소가격,
+                "최대가격" : self.최대가격,
+                "찜작업" : self.찜작업,
+                "알림받기" : self.알림받기,
+                "페이지체류시간" : self.체류시간,
+                "옵션1" : self.옵션1,
+                "옵션2" : self.옵션2,
+                "구매수량" : self.구매수량,
+                "배송메세지" : self.배송메세지
+                }
+                print(가구매작업데이터)
+                socket_sender(작업컴,"가구매작업",가구매작업데이터)
+                #------------------작업컴퓨터 간소화 정보 받기..------------------
+              for 작업컴 in 작업컴퓨터리스트:
+                socket_sender(작업컴,"서버간소화정보")
+                
+                
           
   #----------------------데이터 인풋받는 창----------------------#
         def 쿠팡데이터입력창():
-          if self.platform_check_naver.isChecked():
+          if self.platform_check_coopang.isChecked():
             coupang_input=Coupang_inputData_Gui()
             coupang_input.show()
             coupang_input.exec_()
 
             self.url1=coupang_input.url1
             self.url2=coupang_input.url2
-            self.작업시간=coupang_input.작업시간
+            self.플랫폼=coupang_input.플랫폼
+            self.카카오톡="개발중"
+            self.작업시간=datetime.strptime(coupang_input.작업시간,"%Y-%m-%d-%H:%M")   
+            self.알림받기=coupang_input.알림받기
             self.포인트=coupang_input.포인트
             self.장바구니=coupang_input.장바구니
             self.구매수량=coupang_input.구매수량
@@ -153,7 +206,14 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
             self.배송메세지=coupang_input.배송메세지
             print(self.url1,self.url2,self.작업시간,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지)
 
-
+            #필수데이터 항목이 아닌경우다.
+            self.컴작업간격=coupang_input.컴작업간격  #2개이상의 컴퓨터 작업시만 필요하다.
+            # 시간=self.작업시간+timedelta(minutes=15)
+            # print(시간)
+            # 일단시간=datetime.strftime((self.작업시간+datetime.timedelta(minutes=self.컴작업간격*1)),"%Y-%m-%d-%H:%M")
+            # 일단시간=datetime.strftime((self.작업시간+timedelta(minutes=self.컴작업간격*1)),"%Y-%m-%d-%H:%M")
+            # datetime.strftime((self.작업시간+timedelta(minutes=self.컴작업간격*작업컴퓨터리스트.index(작업컴))),"%Y-%m-%d-%H:%M")
+            # print(일단시간)
 
         #----------------------시그널 슬롯 연결----------------------#
         #기본적인기능
@@ -171,7 +231,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
         self.server2_btn.clicked.connect(두번째서버창)
         self.allserver_btn.clicked.connect(갱신버튼누름)
         ###3.데이터입력창
-        self.platform_check_naver.clicked.connect(쿠팡데이터입력창)
+        self.platform_check_coopang.clicked.connect(쿠팡데이터입력창)
 
 
 if __name__=="__main__":

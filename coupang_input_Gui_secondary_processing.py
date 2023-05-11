@@ -22,7 +22,8 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         self.okay_btn.clicked.connect(self.okayclick)
         self.workinter_checkbox.clicked.connect(self.workinterbal)
         self.Reservationtime_checkbox.clicked.connect(self.timeswitch)
-
+        self.com_workinter_checkbox.clicked.connect(self.comworkinterbal)
+    
     def initdata(self):
         self.url1=None
         self.url2=None
@@ -53,11 +54,22 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         else:
             self.Reservation_label.setEnabled(False)
             self.Reservation_time_edit.setEnabled(False)
+    
+    def comworkinterbal(self):
+        if self.com_workinter_checkbox.isChecked():
+            self.com_workinterbal_label.setEnabled(True)
+            self.com_workinterbal_spinbox.setEnabled(True)
+        elif self.com_workinter_checkbox.isChecked() == False:
+            self.com_workinterbal_label.setEnabled(False)
+            self.com_workinterbal_spinbox.setEnabled(False)
 
     def okayclick(self):
         self.url1=str(self.url1_inputEdit.text())
         self.url2="url2공백"
+        self.작업시간=None
         self.포인트=self.pointuse.isChecked()  #결제옵션(포인트 하나면 된다) , if 아니면 , 그냥 노포인트
+        self.플랫폼="쿠팡"
+        self.알림받기="X"
         self.장바구니=self.jangbaguni.isChecked() #결제방식(장바구니 값 하나면 된다),  if 아니면 , 그냥 일반결제다.
         self.구매수량=int(self.moq.text())
         self.체류시간=int(self.page_scroll_time.text())*60
@@ -67,42 +79,49 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         self.최소가격=int(self.minprice_spinbox.text())
         self.최대가격=int(self.maxprice_spinbox.text())
         self.배송메세지=str(self.basongmsg_LineEdit.text())
-        self.작업시간=None
 
         #쿠팡작업데이터에 직접적으로 쓰이지않음, 다른것을 위한 재료다.
         self.작업간격=int(self.workinterbal_spinbox.text())
         self.예약시간=str(self.Reservation_time_edit.text())
-       
+        self.컴작업간격=None
         ############################유효성검사.##########################################
         if self.최소가격 > 1 and self.최대가격 <= 1:
             self.최대가격=self.최소가격 + 1000
 
         #1.데이터 필터링.
         if self.최소가격 < 1:
-            self.최소가격=None
-            self.최대가격=None
+            self.최소가격=0
+            self.최대가격=0
             #최대가격 자동입력(최소가격만 입력하면 됨)
 
-        #2.작업시간, 예약시간 필터링.
+        #2.작업시간, 예약시간 지정하기.
         if self.workinter_checkbox.isChecked() == False:
             self.작업간격=0
+
         #3.작업시간 유효성검사.
-        if self.Reservationtime_checkbox.isChecked() == False:
+        if not self.Reservationtime_checkbox.isChecked():
             self.작업시간=datetime.now().strftime("%Y-%m-%d-%H:%M")
         elif self.Reservationtime_checkbox.isChecked() == True:
             #예약시간만들기.(데이트타임 객체화 시킨다.)
             현재시간재료=datetime.strptime(self.예약시간,"%H:%M") #시간,분만 객체화(년,월,일이 없다.)
             현재시간=datetime.now() 
             self.작업시간=현재시간재료.replace(year=현재시간.year,month=현재시간.month,day=현재시간.day).strftime("%Y-%m-%d-%H:%M")
-
+            
         #4.url필터링
         if self.url1.find("srp_product_ads&clickEventId") != -1:
             QMessageBox.warning(self,"광고상품링크","당신의 url은 광고상품이에요.")
         
+        #5.컴퓨터간 작업간격.
+        if self.com_workinter_checkbox.isChecked():
+            self.컴작업간격=int(self.com_workinterbal_spinbox.text())
+        else:
+            self.컴작업간격=0
+
         #테스트를 위한 출력.
         print("쿠팡입력데이터:",self.url1,self.url2,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지,self.작업시간)
+        print("쿠팡입력데이터2:",self.컴작업간격,self.작업간격,self.작업시간,)
         #종료를 한다.
-        # self.close()
+        self.close()
         
         
         

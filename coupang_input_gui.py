@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'Coupang_input.ui'
+# Form implementation generated from reading ui file 'coupang_input_gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -9,7 +9,7 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtCore import QTime, Qt
+
 
 class Ui_C_inputDialog(object):
     def setupUi(self, C_inputDialog):
@@ -92,11 +92,11 @@ class Ui_C_inputDialog(object):
         self.maxprice_spinbox.setObjectName("maxprice_spinbox")
         self.Reservation_label = QtWidgets.QLabel(self.payoptions_group)
         self.Reservation_label.setEnabled(False)
-        self.Reservation_label.setGeometry(QtCore.QRect(280, 80, 51, 16))
+        self.Reservation_label.setGeometry(QtCore.QRect(298, 79, 51, 16))
         self.Reservation_label.setObjectName("Reservation_label")
         self.Reservation_time_edit = QtWidgets.QTimeEdit(self.payoptions_group)
         self.Reservation_time_edit.setEnabled(False)
-        self.Reservation_time_edit.setGeometry(QtCore.QRect(340, 76, 61, 22))
+        self.Reservation_time_edit.setGeometry(QtCore.QRect(351, 76, 51, 22))
         font = QtGui.QFont()
         font.setKerning(True)
         font.setStyleStrategy(QtGui.QFont.PreferAntialias)
@@ -117,21 +117,34 @@ class Ui_C_inputDialog(object):
         self.Reservation_time_edit.setTimeSpec(QtCore.Qt.LocalTime)
         self.Reservation_time_edit.setTime(QtCore.QTime(0, 0, 0))
         self.Reservation_time_edit.setObjectName("Reservation_time_edit")
+        self.com_workinterbal_label = QtWidgets.QLabel(self.payoptions_group)
+        self.com_workinterbal_label.setEnabled(False)
+        self.com_workinterbal_label.setGeometry(QtCore.QRect(39, 79, 71, 16))
+        self.com_workinterbal_label.setObjectName("com_workinterbal_label")
+        self.com_workinterbal_spinbox = QtWidgets.QSpinBox(self.payoptions_group)
+        self.com_workinterbal_spinbox.setEnabled(False)
+        self.com_workinterbal_spinbox.setGeometry(QtCore.QRect(105, 76, 41, 20))
+        self.com_workinterbal_spinbox.setProperty("value", 20)
+        self.com_workinterbal_spinbox.setObjectName("com_workinterbal_spinbox")
+        self.Reservationtime_checkbox = QtWidgets.QCheckBox(self.payoptions_group)
+        self.Reservationtime_checkbox.setGeometry(QtCore.QRect(282, 78, 16, 16))
+        self.Reservationtime_checkbox.setText("")
+        self.Reservationtime_checkbox.setObjectName("Reservationtime_checkbox")
+        self.com_workinter_checkbox = QtWidgets.QCheckBox(self.payoptions_group)
+        self.com_workinter_checkbox.setGeometry(QtCore.QRect(23, 78, 16, 16))
+        self.com_workinter_checkbox.setText("")
+        self.com_workinter_checkbox.setObjectName("com_workinter_checkbox")
         self.workinterbal_label = QtWidgets.QLabel(self.payoptions_group)
         self.workinterbal_label.setEnabled(False)
-        self.workinterbal_label.setGeometry(QtCore.QRect(46, 79, 51, 16))
+        self.workinterbal_label.setGeometry(QtCore.QRect(176, 79, 51, 16))
         self.workinterbal_label.setObjectName("workinterbal_label")
         self.workinterbal_spinbox = QtWidgets.QSpinBox(self.payoptions_group)
         self.workinterbal_spinbox.setEnabled(False)
-        self.workinterbal_spinbox.setGeometry(QtCore.QRect(100, 76, 51, 20))
-        self.workinterbal_spinbox.setProperty("value", 25)
+        self.workinterbal_spinbox.setGeometry(QtCore.QRect(230, 76, 41, 20))
+        self.workinterbal_spinbox.setProperty("value", 20)
         self.workinterbal_spinbox.setObjectName("workinterbal_spinbox")
-        self.Reservationtime_checkbox = QtWidgets.QCheckBox(self.payoptions_group)
-        self.Reservationtime_checkbox.setGeometry(QtCore.QRect(264, 79, 16, 16))
-        self.Reservationtime_checkbox.setText("")
-        self.Reservationtime_checkbox.setObjectName("Reservationtime_checkbox")
         self.workinter_checkbox = QtWidgets.QCheckBox(self.payoptions_group)
-        self.workinter_checkbox.setGeometry(QtCore.QRect(30, 78, 16, 16))
+        self.workinter_checkbox.setGeometry(QtCore.QRect(160, 78, 16, 16))
         self.workinter_checkbox.setText("")
         self.workinter_checkbox.setObjectName("workinter_checkbox")
         self.payway_group = QtWidgets.QGroupBox(self.setting_option)
@@ -180,7 +193,6 @@ class Ui_C_inputDialog(object):
         self.url1_inputEdit = QtWidgets.QLineEdit(self.input_group)
         self.url1_inputEdit.setGeometry(QtCore.QRect(60, 30, 361, 21))
         self.url1_inputEdit.setObjectName("url1_inputEdit")
-        
 
         self.retranslateUi(C_inputDialog)
         QtCore.QMetaObject.connectSlotsByName(C_inputDialog)
@@ -204,6 +216,7 @@ class Ui_C_inputDialog(object):
         self.min_maxprice_labe.setText(_translate("C_inputDialog", "<html><head/><body><p><span style=\" font-weight:600;\">가격필터 설정</span></p></body></html>"))
         self.Reservation_label.setText(_translate("C_inputDialog", "<html><head/><body><p><span style=\" font-weight:600;\">예약시간</span></p></body></html>"))
         self.Reservation_time_edit.setDisplayFormat(_translate("C_inputDialog", "hh:mm"))
+        self.com_workinterbal_label.setText(_translate("C_inputDialog", "<html><head/><body><p><span style=\" font-weight:600;\">컴작업간격</span></p></body></html>"))
         self.workinterbal_label.setText(_translate("C_inputDialog", "<html><head/><body><p><span style=\" font-weight:600;\">작업간격</span></p></body></html>"))
         self.payway_group.setTitle(_translate("C_inputDialog", "결제방식"))
         self.sinyongcard.setText(_translate("C_inputDialog", "신용카드"))
@@ -214,8 +227,7 @@ class Ui_C_inputDialog(object):
         self.close_btn.setText(_translate("C_inputDialog", "취소"))
         self.input_group.setTitle(_translate("C_inputDialog", "입력정보"))
         self.URL1_label.setText(_translate("C_inputDialog", "URL :"))
-       
-        
+
 
 if __name__ == "__main__":
     import sys
