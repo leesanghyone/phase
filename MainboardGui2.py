@@ -35,7 +35,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
       self.최대가격=None
       self.배송메세지=None
       self.유효성검사= lambda :[self.url1,self.url2,self.플랫폼,self.카카오톡,self.작업시간,self.알림받기,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지]
-      #가구매 작업의 선택데이터.
+      #가구매작업의 선택데이터.
       self.컴작업간격=None
 
     def initsiganal(self):
@@ -62,17 +62,14 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           self.serverinfo.waitlist_gui() 
           self.serverinfo.exec_() 
     #------------서버일감 수정데이터를 보낸다.----------#
-          try:# 그냥 창 닫으면x 누르면 에러나서 만듬. 
-            작업방식=self.serverinfo.request
-            if 작업방식=="서버수정데이터":
-              socket_sender(soket,작업방식) #데이터를 보낸다.
-              ##데이터초기화 하기
-              sokey_client.waitlist=None
-              self.waitlist=None
-            elif 작업방식=="서버수정없음":
-              print("일감데이터 수정할게없다.")
-          except:
-             pass
+          작업방식=self.serverinfo.request
+          if 작업방식=="서버수정데이터":
+            socket_sender(soket,작업방식) #데이터를 보낸다.
+          elif 작업방식=="서버수정없음":
+            print("수정데이터를 보내지않음.")
+          ##데이터초기화 하기
+          sokey_client.waitlist=None
+          self.waitlist=None
         #-----------------이코드는 쓰지 않지만 교육용으로 남겨놓는다.----------#
         def 서버미니정보얻기(sock,btn):
           #모든 서버에게 갱신요청을 보낸다.
@@ -162,6 +159,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
                 "카카오톡" : self.카카오톡,
                 "작업시간" : datetime.strftime((self.작업시간+timedelta(minutes=self.컴작업간격*작업컴퓨터리스트.index(작업컴))),"%Y-%m-%d-%H:%M"), #받아온데이터->객체화->시간더하기->문자열로변환
                 "장바구니" : self.장바구니,
+                "알림받기" : self.알림받기,
                 "포인트" : self.포인트,
                 "최소가격" : self.최소가격,
                 "최대가격" : self.최대가격,

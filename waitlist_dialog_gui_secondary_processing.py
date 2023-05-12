@@ -9,12 +9,26 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
         self.setupUi(self)
         self.initsiganal()
         self.tableWidget.keyPressEvent=self.keyPressEvent #주석: 이미 키보드함수 실행되고 있음, 그 값을 바꾸는 것 뿐이다.
-    
+        self.request="서버수정없음" #이게없다면, 그냥X눌렀을떄 에러가 난다.(서버수정없음이라는 값이 없기때문에)
+
     def initsiganal(self):
-        self.tableWidget.setColumnCount(2)
-        self.tableWidget.setHorizontalHeaderLabels(["작업시간","플랫폼"])
-        self.tableWidget.setColumnWidth(0,200)
-        self.tableWidget.setColumnWidth(1,70)
+        self.setWindowTitle("작업대기목록")
+        self.tableWidget.setColumnCount(7)
+        self.tableWidget.setHorizontalHeaderLabels(["작업시간","플랫폼","URL","URL2","체류시간","구매수량","배송메세지"])
+        #칼럼간의 간격을 조정한다.
+        for i in range(7):
+            if i==0:#작업시간
+                self.tableWidget.setColumnWidth(i,150)
+            elif i==1:#플랫폼
+                self.tableWidget.setColumnWidth(i,70)
+            elif i==2 or i==3:#URL,URL2
+                self.tableWidget.setColumnWidth(i,150)
+            elif i==4:#체류시간.
+                self.tableWidget.setColumnWidth(i,70)
+            elif i==5: #구매수량
+                self.tableWidget.setColumnWidth(i,70)
+            else:#배송메세지
+                self.tableWidget.setColumnWidth(i,150)
     
 
         #시그널과 슬롯을 연결한다.
@@ -32,24 +46,42 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
                 }
             """)
         #테스트용 나중에 지워도됨.
-        self.tableWidget.setRowCount(5)
-        self.tableWidget.setItem(0,0,QTableWidgetItem(f"슈바"))
-        self.tableWidget.setItem(1,0,QTableWidgetItem(f"작당"))
+        # self.tableWidget.setRowCount(2)
+        # self.tableWidget.setItem(0,0,QTableWidgetItem(f"슈바"))
+        # self.tableWidget.setItem(1,0,QTableWidgetItem(f"작당"))
+        # self.tableWidget.setRowHeight(0, 30)
+        # self.tableWidget.setRowHeight(1, 30)
     
+    #데이터를 수정해서 보내는 역할을 한다.
     def edit_request(self):
         print("수정요청을 하였습니다.")
         row_count = self.tableWidget.rowCount()
         column_count = self.tableWidget.columnCount()
-        #-------------수정요청시 값을 서버일감에 저장한다.-------#
+        #-------------수정요청시 값을 waitlist에 저장한다.-------#
         for row in range(row_count):
             for col in range(column_count):
                 item = self.tableWidget.item(row, col)
                 if col==0:
-                    cell_value = item.text()
+                    cell_value = str(item.text())
                     waitlist[row]["작업시간"]=cell_value
                 elif col==1:
-                    cell_value = item.text()
+                    cell_value = str(item.text())
                     waitlist[row]["플랫폼"]=cell_value
+                elif col==2:
+                    cell_value = str(item.text())
+                    waitlist[row]["URL"]=cell_value
+                elif col==3:
+                    cell_value = str(item.text())
+                    waitlist[row]["URL2"]=cell_value
+                elif col==4:
+                    cell_value = int(item.text())
+                    waitlist[row]["페이지체류시간"]=cell_value
+                elif col==5:
+                    cell_value = int(item.text())
+                    waitlist[row]["구매수량"]=cell_value
+                elif col==6:
+                    cell_value = str(item.text())
+                    waitlist[row]["배송메세지"]=cell_value
                 else:
                     print(f"셀 ({row}, {col})은 비어있습니다.")
         self.request="서버수정데이터"
@@ -106,7 +138,8 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
                 self.tableWidget.removeRow(row)
         else:
             pass
-
+    
+    #테이블의 행을 이동시키는 함수다.
     def move_row(self, source_row, destination_row):
         for col in range(self.tableWidget.columnCount()):
             source_item = self.tableWidget.takeItem(source_row, col)
@@ -121,9 +154,15 @@ class WaitlistDialog(QDialog,Ui_waitlistDialog):
     def waitlist_gui(self):
         self.tableWidget.setRowCount(len(waitlist))
         for i in range(len(waitlist)):
-            self.tableWidget.setItem(i,0,QTableWidgetItem(waitlist[i]["작업시간"]))
-            self.tableWidget.setItem(i,1,QTableWidgetItem(waitlist[i]["플랫폼"]))
+            self.tableWidget.setItem(i,0,QTableWidgetItem(str(waitlist[i]["작업시간"])))
+            self.tableWidget.setItem(i,1,QTableWidgetItem(str(waitlist[i]["플랫폼"])))
+            self.tableWidget.setItem(i,2,QTableWidgetItem(str(waitlist[i]["URL"])))
+            self.tableWidget.setItem(i,3,QTableWidgetItem(str(waitlist[i]["URL2"])))
+            self.tableWidget.setItem(i,4,QTableWidgetItem(str(waitlist[i]["페이지체류시간"])))
+            self.tableWidget.setItem(i,5,QTableWidgetItem(str(waitlist[i]["구매수량"])))
+            self.tableWidget.setItem(i,6,QTableWidgetItem(str(waitlist[i]["배송메세지"])))
     
+    #인덱스를 바꾸는 함수다.
     def swap_elements(self,lst, index1, index2):
         if not (0 <= index1 < len(lst)) or not (0 <= index2 < len(lst)):
             raise ValueError("인덱스가 리스트의 범위를 벗어났습니다.")

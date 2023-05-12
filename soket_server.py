@@ -6,7 +6,12 @@ from datetime import datetime,timedelta
 def initstater(ip=str,port=int):
     global waitlist,workerlist,쓰레드락
     #--------------사전준비 자료다.----------------------.
-    waitlist=[{"URL": "https://copang.com","작업시간" : (datetime.now()+timedelta(minutes=15)).strftime('%Y-%m-%d-%H:%M'),"플랫폼" : "쿠팡"},{"URL": "https://naver.com","작업시간" : (datetime.now()+timedelta(minutes=30)).strftime('%Y-%m-%d-%H:%M'),"플랫폼" : "네이버"}]
+    #테스트용 나중에 지우면됨.
+    test_work1={"URL": "https://copang.com", "URL2" :"공백", "플랫폼" : "네이버", "카카오톡" :"개발중입니다", "작업시간" : datetime.strftime((datetime.now()+timedelta(minutes=15)),'%Y-%m-%d-%H:%M'),"장바구니" : False, "알림받기" : False, "포인트" : False, "최소가격" : 0, "최대가격" : 0, "찜작업" : False, "알림받기" : False, "페이지체류시간" : 110, "옵션1" : 2, "옵션2" : 2, "구매수량" : 1, "배송메세지" : "너무좋아요."}
+    test_work2={"URL": "https://naver.com", "URL2" :"공백", "플랫폼" : "쿠팡", "카카오톡" :"개발중입니다", "작업시간" : datetime.strftime((datetime.now()+timedelta(minutes=30)),'%Y-%m-%d-%H:%M'),"장바구니" : False, "알림받기" : False, "포인트" : False, "최소가격" : 0, "최대가격" : 0, "찜작업" : False, "알림받기" : False, "페이지체류시간" : 110, "옵션1" : 2, "옵션2" : 2, "구매수량" : 1, "배송메세지" : "슈바..."}
+    
+    waitlist=[test_work1,test_work2]
+    #받아온데이터->객체화->시간더하기->문자열로변환 
     workerlist=[]
     쓰레드락=threading.Lock()
     #--------------실행자 함수다..----------------------.
@@ -21,49 +26,46 @@ def initstater(ip=str,port=int):
 def receiver(c_sock):
     global waitlist,stop_event
     while True:
-    #--------------가구매작업을 처리한다.---------------------.   
+    #--------------가구매작업을 처리한다.---------------------.
         작업방식=c_sock.recv(1024).decode("utf-8")
         if 작업방식=="가구매작업":
-            print("가구매작업을 데이터를 받겠습니다.")
-            작업데이터=json.loads(c_sock.recv(4000).decode("utf-8"))
-            with 쓰레드락:
+            with 쓰레드락: #이 다음부터 다른 작업가 겹치지 않게 만들어야 한다.
+                print("가구매작업을 데이터를 받겠습니다.")
+                beforeDecode = c_sock.recv(4000)
+                print(beforeDecode)
+                작업데이터=json.loads(beforeDecode.decode("utf-8"))
                 waitlist.append(작업데이터)
-            print("가구매작업을 데이터를 받았습니다.")
-            print(작업데이터)
+                print("가구매작업을 데이터를 받았습니다.")
+                print(작업데이터)
     #--------------서버정보업데이트를 처리한다----------------------.            
         elif 작업방식=="서버정보업데이트":
             print("서버정보 업데이트를 클라이언트가 요청했습니다")
-
-            #1.클라이언트에게 데이터 받을 준비해라.
-            c_sock.sendall("서버정보업데이트".encode("utf-8"))
-            
-            #서버일감 정보를 보내준다.
-            with 쓰레드락:
-                server_waitlist=waitlist.copy()
-            #원본 그대로 보내는 부분이다.
-            보낼데이터=server_waitlist
-            c_sock.sendall(json.dumps(보낼데이터).encode("utf-8"))
+            with 쓰레드락: #작업 기준으로, 동시에 전송되는 것을 막는다.
+                #1.클라이언트에게 데이터 받을 준비해라.
+                c_sock.sendall("서버정보업데이트".encode("utf-8"))
+                #2.원본 그대로 보내는 부분이다.
+                보낼데이터=waitlist 
+                c_sock.sendall(json.dumps(보낼데이터).encode("utf-8"))
         
-        elif 작업방식=="서버수정데이터":  
-            print("서버수정데이터를 받았습니다")
-            수정데이터=json.loads(c_sock.recv(4000).decode("utf-8"))
+        elif 작업방식=="서버수정데이터": 
             with 쓰레드락:
+                print("서버수정데이터를 받았습니다")
+                수정데이터=json.loads(c_sock.recv(4000).decode("utf-8"))
                 waitlist=수정데이터
-            print(f"수정완료:{waitlist}")
-            #-------------작동중인 타임 쓰레드 멈추고 새롭게 갈아끼우기.--------------------.     
+                print(f"수정완료:{waitlist}")
+            #----------------작동중인 타임 쓰레드 멈추고 새롭게 갈아끼우기----------------   
             stop_event.set()
             #새로운 쓰레드 시작시키기.
-            stop_event=threading.Event() #새롭게 변수에 들어가도, 쓰레드에 들어간 쓰레드이벤트는 사라지지않는다.
+            stop_event=threading.Event() #새롭게 변수에 들어가도, 쓰레드에 들어간 참조된 객체는 사라지지않는다.
             time_thread=threading.Thread(target=Time_manager,args=(stop_event,))
             time_thread.start()
             
         elif 작업방식=="서버간소화정보":
-            c_sock.sendall("서버간소화정보".encode("utf-8"))
             with 쓰레드락:
+                c_sock.sendall("서버간소화정보".encode("utf-8"))
                 보낼데이터=str(len(waitlist))
-            print(f"서버간소화정보:{보낼데이터}")
-            c_sock.send((보낼데이터).encode("utf-8"))
-
+                print(f"서버간소화정보:{보낼데이터}")
+                c_sock.send((보낼데이터).encode("utf-8"))
         else:
             print("작업방식이 잘못되었습니다.")
 
@@ -113,13 +115,12 @@ def worker(c_sock):
             # c_sock.sendall(json.dumps(엑셀작업데이터).encode("utf-8"))
             # print("결과물을 클라측에 전송(엑셀자료) 완료")
 
-            #--------------결과물을 클라측에 전송(엑셀자료)----------------------.
-            #클라이언츠측에 서버간소화정보를 보내준다.
-            c_sock.sendall("서버간소화정보".encode("utf-8"))
+            #-------------클라이언츠측에 서버간소화정보를 보내준다.----------------.
             with 쓰레드락:
+                c_sock.sendall("서버간소화정보".encode("utf-8"))
                 보낼데이터=str(len(waitlist))
                 print(f"서버간소화정보:{보낼데이터}")
-            c_sock.send((보낼데이터).encode("utf-8"))
+                c_sock.send((보낼데이터).encode("utf-8"))
 
 #--------------타임매니저(웨잇리스트->워크리스트 일을 던져줌)----------
 def Time_manager(stop_event):
@@ -129,7 +130,7 @@ def Time_manager(stop_event):
         print("타임매니저 무한 작동중")
         #-----------작업시간까지 대기하기----------
         with 쓰레드락:
-            waitlistcopy=waitlist.copy() #속도를 빠르게 하기 위해서, 본체를 쓰면 그만큼 묶인다.
+            waitlistcopy=waitlist.copy()
             # 비어있다면, 10초 있다가.
         if not waitlistcopy:
             print("대기 리스트가 비어있습니다. 대기 중...")
@@ -137,12 +138,13 @@ def Time_manager(stop_event):
             continue
         예약시간 = datetime.strptime(waitlistcopy[0]["작업시간"], '%Y-%m-%d-%H:%M')
         print(f"예약시간:{예약시간}")
+        ####오류방지용####
         작업대기시간 = (예약시간 - datetime.now()).total_seconds() // 60
         if 작업대기시간 < 0:
             작업대기시간 = 0
         print(f"작업대기시간은 {작업대기시간}초 입니다.")
         time.sleep(작업대기시간)
-        #쓰레드 종료 장치 넣어둠.
+        #-----------쓰레드 종료 장치 넣어둠.----------
         if stop_event.is_set():
             print("타임매니저 작동종료")
             return
@@ -173,8 +175,6 @@ def socket_start(ip=str,port=int,workcomname=str):
     Time_manager_thred.start()
     print("쓰레드 시작 완료")
     
-
-
 #--------------사용설명을 도와주는 파트다.----------------------.
 if __name__ == '__main__':
     socket_start("127.0.0.1",12000,"박경희")

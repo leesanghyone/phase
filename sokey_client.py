@@ -3,8 +3,9 @@ from PyQt5.QtWidgets import QTableWidgetItem
 # from excel import *
 
 
-
 def initstater(ip=str,port=int):
+    global 쓰레드락
+    쓰레드락=threading.Lock()
     sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     sock.connect((ip,port))
     return sock
@@ -18,75 +19,76 @@ def receiver(sock,guiparent=None):
     while True:
         작업종류설정=sock.recv(1024).decode("utf-8")
         if 작업종류설정=="가구매작업":
+            #동시에 2개의 쓰레드가 소켓을 사용하면 오류가 난다. 묶어서 사용해야됨.
             print("가구매작업 결과물 데이터를 받았습니다.")
-        #--------------넘어온 데이터로 엑셀 작업파트----------------------.
-            # try:
-            #     platform="쿠팡"
-            #     workcom="박경희"
-            #     kakao="개발중"
-            #     product_title="경추베개"
-            #     review="너무 좋아요, 우리 모두 그렇게 했으면 좋겠어요. \n 아니야 !!!"
-            #     photoreview="X"
-            #     pointuse=None 
-            #     workstate="구매완료"
-            #     product_price=13000
-            #     add_exceldata(platform,workcom,kakao,product_title,review,photoreview,pointuse,workstate,product_price)
-            # except:
-            #     create_excel()
+        # #--------------넘어온 데이터로 엑셀 작업파트----------------------.
+        #     try:
+        #         platform="쿠팡"
+        #         workcom="박경희"
+        #         kakao="개발중"
+        #         product_title="경추베개"
+        #         review="너무 좋아요, 우리 모두 그렇게 했으면 좋겠어요. \n 아니야 !!!"
+        #         photoreview="X"
+        #         pointuse=None 
+        #         workstate="구매완료"
+        #         product_price=13000
+        #         add_exceldata(platform,workcom,kakao,product_title,review,photoreview,pointuse,workstate,product_price)
+        #     except:
+        #         create_excel()
 
-            # print("엑셀 작업중입니다.")
-            # #쓰레드에 락을 걸어서 겹치지 않게 작업을 해야 한다.
-            # print("소켓이 종료되었습니다.")
+        #     print("엑셀 작업중입니다.")
+        #     #쓰레드에 락을 걸어서 겹치지 않게 작업을 해야 한다.
+        #     print("소켓이 종료되었습니다.")
     #--------------서버정보업데이트----------------------.
         elif 작업종류설정=="서버정보업데이트":
             #--------------서버일감 데이터 받기----------------------.
-            waitlist=sock.recv(8000).decode("utf-8")
-            waitlist=json.loads(waitlist) 
-            print("서버정보 업데이트 데이터를 받았습니다.")
-            print(waitlist)
+            with 쓰레드락:
+                waitlist=sock.recv(8000).decode("utf-8")
+                waitlist=json.loads(waitlist) 
+                print("서버정보 업데이트 데이터를 받았습니다.")
+                print(waitlist)
         
         elif 작업종류설정=="서버간소화정보":
-            # miniwaitlist={}
-            응답데이터=sock.recv(1024).decode("utf-8")
-            print(f"서버간소화정보를 받았습니다.응답:{응답데이터}")
-            outip,outport=sock.getpeername() #연결된 대상의 ip와, 포트번호를 보여준다.
-            print(f"{outip}:{outport}에서 서버간소화정보를 받았습니다.")
-            # miniwaitlist[outip]=응답데이터 #딕셔너리 값을 넣어준다.
-            # print(miniwaitlist.get(outip))
-            
-            #+++++컴퓨터 추가시 추가작업+++++
-            if guiparent != None:
-                if outip=="127.0.0.1":
-                    guiparent.server1_btn.setText(응답데이터)
+            with 쓰레드락:
+                응답데이터=sock.recv(1024).decode("utf-8")
+                # miniwaitlist={}
+                print(f"서버간소화정보를 받았습니다.응답:{응답데이터}")
+                outip,outport=sock.getpeername() #연결된 대상의 ip와, 포트번호를 보여준다.
+                print(f"{outip}:{outport}에서 서버간소화정보를 받았습니다.")
+                # miniwaitlist[outip]=응답데이터 #딕셔너리 값을 넣어준다.
+                # print(miniwaitlist.get(outip))
+                
+                #+++++컴퓨터 추가시 추가작업+++++
+                if guiparent != None:
+                    if outip=="127.0.0.1":
+                        guiparent.server1_btn.setText(응답데이터)
         else:
             print(f"작업종류설정이 잘못들어왔습니다.{작업종류설정}")
             time.sleep(1)
 
 #--------------데이터 보내는 파트.----------------------.
-def socket_sender(sock,작업방식,가구매작업데이터=None):
+def socket_sender(sock,작업방식,가구매작업데이터=None): 
     ##--------------작업방식 데이터 보내기. ----------------------
-    sock.sendall(작업방식.encode("utf-8"))
+    with 쓰레드락: #락을 걸어서 쓰레드가 겹치지 않게 한다.(일시적으로 한다 그러니 전체를 묶어도 된다)
+        sock.sendall(작업방식.encode("utf-8"))
+        ##--------------1.가구매 작업 데이터 보내기.----------------------
+        #1.가구매 작업 데이터 보내기.
+        if 작업방식 == "가구매작업":
+            print("가구매 작업 데이터를 보냅니다.")
+            sendData = json.dumps(가구매작업데이터)
+            print(sendData)
+            sock.sendall(sendData.encode("utf-8"))
+        ##--------------2.서버정보업데이트 정보 요청하기 ----------------------
+        elif 작업방식 == "서버정보업데이트":
+            print("서버정보업데이트 정보요청을 보냈습니다")
 
-    ##--------------1.가구매 작업 데이터 보내기.----------------------
-    #1.가구매 작업 데이터 보내기.
-    if 작업방식 == "가구매작업":
-        print("가구매 작업 데이터를 보냅니다.")
-        sock.sendall(json.dumps(가구매작업데이터).encode("utf-8"))
+        elif 작업방식 == "서버수정데이터":
+            print("서버정보업데이트 수정데이터를 보냈습니다")
+            sock.sendall(json.dumps(waitlist).encode("utf-8"))
+        
+        elif 작업방식 == "서버간소화정보":
+            print("서버간소화정보를 보냈습니다.")
 
-    ##--------------2.서버정보업데이트 정보 요청하기 ----------------------
-    elif 작업방식 == "서버정보업데이트":
-        print("서버정보업데이트 정보요청을 보냈습니다")
-
-    elif 작업방식 == "서버수정데이터":
-        print("서버정보업데이트 수정데이터를 보냈습니다")
-        sock.sendall(json.dumps(waitlist).encode("utf-8"))
-    
-    elif 작업방식 == "서버간소화정보":
-        print("서버간소화정보를 보냈습니다.")
-
-def outdata():
-    global waitlist
-    return waitlist
 #--------------쉽게 사용하기 위한 함수.----------------------.
 def soket_start(ip,port,guiparent=None):
     sock=initstater(ip,port)
@@ -103,6 +105,7 @@ if __name__ == '__main__':
             "작업시간" : datetime.datetime.now().strftime('%Y-%m-%d-%H:%M'),
             "장바구니" : False,
             "포인트" : False,
+            "알림받기" : False,
             "최소가격" : 10000,
             "최대가격" : 10000,
             "찜작업" : True,
@@ -119,3 +122,17 @@ if __name__ == '__main__':
         socket_sender(박경희컴퓨터sock,작업방식,가구매작업데이터) #데이터를 보낸다.
 
        
+
+
+# ''' 
+# 메모를 남겨둔다.
+
+# 1.소켓통신시 "작업"단위로 쓰레드락을 묶어야 한다.
+
+# 리시버에서, 첫번째 일을 받을떄, 동시에 두번쟤 일이 들어오면, 
+# 오류가 나기 시작한다.
+
+# 첫번째 일을 받고, 끝내고 두번째 일을 받아야 한다.
+# 이때, "작업"개념으로 묶어서, 락을 걸어야 한다.
+
+# '''

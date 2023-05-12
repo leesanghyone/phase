@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'waitlist_soket.ui'
+# Form implementation generated from reading ui file 'waitlist_dialog_gui.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -14,33 +14,32 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_waitlistDialog(object):
     def setupUi(self, waitlistDialog):
         waitlistDialog.setObjectName("waitlistDialog")
-        waitlistDialog.resize(400, 299)
+        waitlistDialog.resize(893, 390)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
         sizePolicy.setHeightForWidth(waitlistDialog.sizePolicy().hasHeightForWidth())
         waitlistDialog.setSizePolicy(sizePolicy)
-        waitlistDialog.setMinimumSize(QtCore.QSize(400, 299))
-        waitlistDialog.setMaximumSize(QtCore.QSize(400, 299))
+        waitlistDialog.setMinimumSize(QtCore.QSize(800, 390))
+        waitlistDialog.setMaximumSize(QtCore.QSize(1500, 390))
         self.tableWidget = QtWidgets.QTableWidget(waitlistDialog)
-        self.tableWidget.setGeometry(QtCore.QRect(10, 10, 381, 241))
+        self.tableWidget.setGeometry(QtCore.QRect(10, 10, 871, 311))
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setColumnCount(0)
         self.tableWidget.setRowCount(0)
         self.edit_request_btn = QtWidgets.QPushButton(waitlistDialog)
-        self.edit_request_btn.setGeometry(QtCore.QRect(220, 260, 171, 31))
+        self.edit_request_btn.setGeometry(QtCore.QRect(450, 330, 431, 51))
         self.edit_request_btn.setObjectName("edit_request_btn")
         self.cancle_btn = QtWidgets.QPushButton(waitlistDialog)
-        self.cancle_btn.setGeometry(QtCore.QRect(10, 260, 171, 31))
+        self.cancle_btn.setGeometry(QtCore.QRect(10, 330, 431, 51))
         self.cancle_btn.setObjectName("cancle_btn")
-        self.cancle_btn.clicked.connect(waitlistDialog.close)
 
         self.retranslateUi(waitlistDialog)
         QtCore.QMetaObject.connectSlotsByName(waitlistDialog)
 
     def retranslateUi(self, waitlistDialog):
         _translate = QtCore.QCoreApplication.translate
-        waitlistDialog.setWindowTitle(_translate("waitlistDialog", "서버정보리스트"))
+        waitlistDialog.setWindowTitle(_translate("waitlistDialog", "Dialog"))
         self.edit_request_btn.setText(_translate("waitlistDialog", "수정요청"))
         self.cancle_btn.setText(_translate("waitlistDialog", "취소"))
 
