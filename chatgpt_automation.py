@@ -1,5 +1,5 @@
 
-import openai, time
+import openai
 import threading,queue
 
 jailbreak=''' 
@@ -59,17 +59,17 @@ Maintain the form while only modifying the attribute values. Also, leave the inf
 Follow these rules to assist in my work.
 
 '''
-
-openai.api_key ="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"
+openai.api_key ="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"
 역할부여메세지="From now on, you are an assistant. If I provide personal information, you will remember that information. And when I request it, you should fill in the necessary parts with personal information and provide it to me."
 messages=[{"role": "system", "content":f"{역할부여메세지}"}]
 
 
 #챗봇에게 전달할 메시지를 저장하는 큐를 생성합니다.
 message_queue = queue.Queue()
+Gpt_result_data = None
 
-def chatgpt_start():
-    global messages
+def chatgpt_init():
+    global messages,Gpt_result_data
     messages.append({"role": "user", "content": f"{jailbreak}"})
     completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
     assistant_messagess=completion.choices[0].message["content"].strip()
@@ -89,29 +89,42 @@ def chatgpt_start():
         #챗봇의 응답을 생성합니다.
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
         assistant_message = completion.choices[0].message["content"].strip()
-        
+        Gpt_result_data = assistant_message
         #대답을 계속누적을 한다(요금증가)
         messages.append({"role": "assistant", "content": f"{assistant_message}"})
 
         #응답을 출력합니다.
         print("assistant : ", assistant_message)
 
-# 챗봇 스레드를 생성하고 시작합니다.
-chatgpt_thread = threading.Thread(target=chatgpt_start)
-chatgpt_thread.start()
 
-입력데이터=''' 
-박경희 정보로 다음을 채워줘.
--주문자 성함:
--예금주 성함:
--은행명:
--계좌번호:
--전화번호:
-'''
-#이제,챗봇에게 메시지를 전달하려면 다음 코드를 사용하면 됩니다.
-message_queue.put(입력데이터)
+def chatgpt_input(message):
+    message_queue.put(message)
+
+
+def chatgpt_start():
+    chatgpt_thread = threading.Thread(target=chatgpt_init)
+    chatgpt_thread.start()
+
+
+
 
 # # 챗봇을 종료하려면 다음 코드를 사용하면 됩니다.
 # message_queue.put(None)
 
+if __name__ == "__main__":
+    # 챗봇 스레드를 생성하고 시작합니다.
+    입력데이터=''' 
+    박경희 정보로 다음을 채워줘.
+    -주문자 성함:
+    -예금주 성함:
+    -은행명:
+    -계좌번호:
+    -전화번호:
+    '''
+    chatgpt_start()
+    chatgpt_input(입력데이터)
+    while True:
+        x=input("user : ")
+        chatgpt_input(x)
+    
 

@@ -2,8 +2,11 @@ import win32gui,time
 import win32process
 import time, win32con, win32api, win32gui, ctypes
 import time, win32con, win32api, win32gui, ctypes
+import win32clipboard
+import pandas as pd
+from chatgpt_automation import *
+import chatgpt_automation
 #현재 실행 중인 모든 창 핸들 가져오기
-
 def kakao_room_serach():
     #1.현재 실행 중인 모든 창 핸들 가져오기
     while True:
@@ -39,10 +42,12 @@ def kakao_room_serach():
                 pass
         if len(kakao_title) < 1:
             print(f"카카오톡 대화창이 없습니다.")
-            time.sleep(1)
+            time.sleep(5)
+            win32api.MessageBox(win32con.NULL, '카카오톡 창이 업습니다.', '카카오톡 창 과다.', win32con.MB_OK)
         elif len(kakao_title) > 1:
             print(f"한개 이상의 창이 켜져 있습니다.")
-            time.sleep(1)
+            win32api.MessageBox(win32con.NULL, '카카오톡 창이 한개 이상켜져있습니다.', '카카오톡 창 과다.', win32con.MB_OK)
+            time.sleep(5)
         elif len(kakao_title) == 1:
             print(f"대화창수집완료하였습니다:{kakao_title[0]} ")
             return kakao_title[0]
@@ -50,6 +55,8 @@ def kakao_room_serach():
 
 # 조합키 쓰기 위해
 def PostKeyEx(hwnd, key, shift, specialkey):
+    global w
+    w = win32con
     #사전실행 변수들.
     PBYTE256 = ctypes.c_ubyte * 256
     _user32 = ctypes.WinDLL("user32")
@@ -65,7 +72,6 @@ def PostKeyEx(hwnd, key, shift, specialkey):
     MapVirtualKeyA = _user32.MapVirtualKeyA
     MapVirtualKeyW = _user32.MapVirtualKeyW
     MakeLong = win32api.MAKELONG
-    w = win32con
     #실질적으로 작동하는 함수들이다.
     if IsWindow(hwnd):
 
@@ -102,10 +108,11 @@ def PostKeyEx(hwnd, key, shift, specialkey):
             SetKeyboardState(ctypes.byref(pKeyBuffers_old))
             time.sleep(0.01)
             AttachThreadInput(GetCurrentThreadId(), ThreadId, False)
-
+            
         else:  # Если нету модификаторов - используем SendMessage
             SendMessage(hwnd, msg_down, key, lparam)
             SendMessage(hwnd, msg_up, key, lparam | 0xC0000000)
+
 
 # PostKeyEx(hwndListControl, ord('A'), [w.VK_CONTROL], False)
 # PostKeyEx(hwndListControl, ord('C'), [w.VK_CONTROL], False)
@@ -135,7 +142,7 @@ def enter(hwnd):
 
 def send_msg(kakao_title:str,msg:str):
     ###타겟 챗팅방###
-    hwndMain = win32gui.FindWindow( None,kakao_title)
+    hwndMain = win32gui.FindWindow(None,kakao_title)
     hwndEdit = win32gui.FindWindowEx( hwndMain, None, "RICHEDIT50W", None)
     # win32gui.SetForegroundWindow(hwndMain)
 
@@ -194,10 +201,64 @@ def kakao_work(kakao_title,imaga_filepath):
     send_msg(kakao_title,imaga_filepath)
 
 
+def kakakao_getText(hwnd):
+    w = win32con
+    hwndMain = win32gui.FindWindow(None,hwnd)
+    hwndEdit = win32gui.FindWindowEx(hwndMain, None, "EVA_VH_ListControl_Dblclk", None)
+    PostKeyEx(hwndEdit, ord('A'), [w.VK_CONTROL], False)
+    time.sleep(0.5)
+    PostKeyEx(hwndEdit, ord('C'), [w.VK_CONTROL], False)
+    win32clipboard.OpenClipboard()
+    content = win32clipboard.GetClipboardData()
+    win32clipboard.CloseClipboard()
+    print(content)
+    a = content.split('\r\n')   # \r\n 으로 스플릿 __ 대화내용 인용의 경우 \r 때문에 해당안됨
+    df = pd.DataFrame(a)    # DF 으로 바꾸기
+    print(df)
+    df[0] = df[0].str.replace('\[([\S\s]+)\] \[(오전|오후)([0-9:\s]+)\] ', '')  # 정규식으로 채팅내용만 남기기
+    print(df[0])
+    print(df.index[-2], df.iloc[-2, 0])
+    return df.index[-2], df.iloc[-2, 0]
+    
+def kakao_get_inputText(hwnd):
+    hwndMain = win32gui.FindWindow(None,hwnd)
+    hwndEdit = win32gui.FindWindowEx(hwndMain, None, "RICHEDIT50W", None)
+    PostKeyEx(hwndEdit, ord('A'), [win32con.VK_CONTROL], False)
+    time.sleep(0.5)
+    PostKeyEx(hwndEdit, ord('C'), [win32con.VK_CONTROL], False)
+    win32clipboard.OpenClipboard()
+    content = win32clipboard.GetClipboardData()
+    win32clipboard.CloseClipboard()
+    print(content)
+    return content
+
+def kakao_inputPast(hwnd,past_data):
+    hwndMain = win32gui.FindWindow(None,hwnd)
+    hwndEdit = win32gui.FindWindowEx(hwndMain, None, "RICHEDIT50W", None)
+
+    # 클립보드 열기
+    print(past_data)
+    win32clipboard.OpenClipboard()
+    win32clipboard.EmptyClipboard() #없으면 복사를 잘 못함.
+    win32clipboard.SetClipboardText(past_data)
+    win32clipboard.CloseClipboard()
+
+    PostKeyEx(hwndEdit, ord('A'), [win32con.VK_CONTROL], False)
+    time.sleep(0.5)
+    PostKeyEx(hwndEdit, ord('V'), [win32con.VK_CONTROL], False)
+
+
+# chatroom_go("상준")
+# PostKeyEx(hwndListControl, ord('A'), [w.VK_CONTROL], False)
+# PostKeyEx(hwndListControl, ord('C'), [w.VK_CONTROL], False)
+# win32gui.GetWindowText(edit_control)
+
+
 #------사용법------#
 if __name__=="__main__": 
+    # kakao_inputPast("상준","HELLOW")
     #1.퍈매자 채팅방 이름 찾기.
-    kakao_room_serach()
+    # kakao_room_serach()
 
     #2.채팅방에 이미지 보내기.
     # img_path='C:/Users/lsh92/Desktop/asdasd.png'
@@ -206,3 +267,15 @@ if __name__=="__main__":
     #3.채팅방에 메세지 보내기.
     # chatroom_go("상준")
     # send_msg("상준","어찌 잘 지내고 있니?")
+    # kakakao_getText("상준")
+    chatgpt_start()
+    time.sleep(5)
+    inputdate=kakao_get_inputText("상준")
+    chatgpt_input(inputdate)
+    while True:
+        if chatgpt_automation.Gpt_result_data != None:
+            gpt_result=chatgpt_automation.Gpt_result_data
+            break
+    kakao_inputPast("상준",gpt_result)
+    chatgpt_automation.Gpt_result_data=None
+    
