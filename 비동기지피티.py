@@ -59,44 +59,59 @@ Maintain the form while only modifying the attribute values. Also, leave the inf
 Follow these rules to assist in my work.
 
 '''
+
 openai.api_key ="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"
 역할부여메세지="From now on, you are an assistant. If I provide personal information, you will remember that information. And when I request it, you should fill in the necessary parts with personal information and provide it to me."
 messages=[{"role": "system", "content":f"{역할부여메세지}"}]
-# messages=[]
 
+
+#챗봇에게 전달할 메시지를 저장하는 큐를 생성합니다.
+message_queue = queue.Queue()
 
 def chatgpt_start():
-    global messages,completion
-    n=0
-    while True:
-        if n==0:
-            messages.append({"role": "user", "content": f"{jailbreak}"})
-            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
-            assistant_messagess=completion.choices[0].message["content"].strip()
-            messages.append({"role": "assistant", "content": f"{assistant_messagess}"})
-            print("assistant : ",assistant_messagess)
-            n+=1
-        else:
-            user_contet=input("user : ")
-            messages.append({"role": "user", "content": f"{user_contet}"})
-            completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
-            assistant_messagess=completion.choices[0].message["content"].strip()
-            #대답을 계속 누적을 한다. (요금증가)
-            # messages.append({"role": "assistant", "content": f"{assistant_messagess}"})
-            print("assistant : ",assistant_messagess)
-            n+=1
-
-def chatgpt_inputmsg(msg):
-    messages.append({"role": "user", "content": f"{msg}"})
+    global messages
+    messages.append({"role": "user", "content": f"{jailbreak}"})
     completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
     assistant_messagess=completion.choices[0].message["content"].strip()
-
+    messages.append({"role": "assistant", "content": f"{assistant_messagess}"})
+    print("assistant : ",assistant_messagess)
     
-###사용법.
-if __name__ == "__main__":
-    gpt=threading.Thread(target=chatgpt_start)
-    gpt.start()
-    gpt.join()
-    time.sleep(10)
+    while True:
+        # 새메시지가 큐에 추가될 때까지 기다립니다.
+        new_message = message_queue.get()
+        if new_message is None:
+            # None 메시지를 받으면 챗봇을 종료합니다.
+            break
 
-    chatgpt_inputmsg("안녕하세요")
+        #새메시지를 messages 리스트에 추가합니다.
+        messages.append({"role": "user", "content": new_message})
+
+        #챗봇의 응답을 생성합니다.
+        completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
+        assistant_message = completion.choices[0].message["content"].strip()
+        
+        #대답을 계속누적을 한다(요금증가)
+        messages.append({"role": "assistant", "content": f"{assistant_message}"})
+
+        #응답을 출력합니다.
+        print("assistant : ", assistant_message)
+
+# 챗봇 스레드를 생성하고 시작합니다.
+chatgpt_thread = threading.Thread(target=chatgpt_start)
+chatgpt_thread.start()
+
+입력데이터=''' 
+박경희 정보로 다음을 채워줘.
+-주문자 성함:
+-예금주 성함:
+-은행명:
+-계좌번호:
+-전화번호:
+'''
+#이제,챗봇에게 메시지를 전달하려면 다음 코드를 사용하면 됩니다.
+message_queue.put(입력데이터)
+
+# # 챗봇을 종료하려면 다음 코드를 사용하면 됩니다.
+# message_queue.put(None)
+
+
