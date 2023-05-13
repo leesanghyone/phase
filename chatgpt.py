@@ -41,7 +41,8 @@ while True:
         messages.append({"role": "user", "content": f"{user_contet}"})
         completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=messages)
         assistant_messagess=completion.choices[0].message["content"].strip()
-        messages.append({"role": "assistant", "content": f"{assistant_messagess}"})
+        #대답을 계속 추가해서, 답을 알려주게 된다. 단, 요금이 좀 늘어난다.
+        # messages.append({"role": "assistant", "content": f"{assistant_messagess}"})
         print("assistant : ",assistant_messagess)
         n+=1
     
