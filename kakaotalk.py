@@ -6,6 +6,12 @@ import win32clipboard
 import pandas as pd
 from chatgpt_automation import *
 import chatgpt_automation
+
+from pynput.keyboard import Key, Listener
+
+
+
+
 #현재 실행 중인 모든 창 핸들 가져오기
 def kakao_room_serach():
     #1.현재 실행 중인 모든 창 핸들 가져오기
@@ -118,9 +124,8 @@ def PostKeyEx(hwnd, key, shift, specialkey):
 # PostKeyEx(hwndListControl, ord('C'), [w.VK_CONTROL], False)
 
 
-
 ##챗팅방 찾아가기###
-def chatroom_go(kakao_title):
+def kakao_chatroom_go(kakao_title):
     hwndkakao = win32gui.FindWindow(None, "카카오톡")
     hwndkakao_edit1 = win32gui.FindWindowEx( hwndkakao, None, "EVA_ChildWindow", None)
     hwndkakao_edit2_1 = win32gui.FindWindowEx( hwndkakao_edit1, None, "EVA_Window", None)
@@ -195,42 +200,43 @@ def cliboard_imacopy(filepath):
     output.close()
     send_to_clipboard(win32clipboard.CF_DIB, data) #클립보드 복사.
 
-#총대장함수이다. 이것만 실행하면 된다.
-def kakao_work(kakao_title,imaga_filepath):
-    chatroom_go(kakao_title)
-    send_msg(kakao_title,imaga_filepath)
 
 
-def kakakao_getText(hwnd):
-    w = win32con
-    hwndMain = win32gui.FindWindow(None,hwnd)
-    hwndEdit = win32gui.FindWindowEx(hwndMain, None, "EVA_VH_ListControl_Dblclk", None)
-    PostKeyEx(hwndEdit, ord('A'), [w.VK_CONTROL], False)
-    time.sleep(0.5)
-    PostKeyEx(hwndEdit, ord('C'), [w.VK_CONTROL], False)
-    win32clipboard.OpenClipboard()
-    content = win32clipboard.GetClipboardData()
-    win32clipboard.CloseClipboard()
-    print(content)
-    a = content.split('\r\n')   # \r\n 으로 스플릿 __ 대화내용 인용의 경우 \r 때문에 해당안됨
-    df = pd.DataFrame(a)    # DF 으로 바꾸기
-    print(df)
-    df[0] = df[0].str.replace('\[([\S\s]+)\] \[(오전|오후)([0-9:\s]+)\] ', '')  # 정규식으로 채팅내용만 남기기
-    print(df[0])
-    print(df.index[-2], df.iloc[-2, 0])
-    return df.index[-2], df.iloc[-2, 0]
+#판다스로, 최신 메세지와 ,구메세지를 구분이 가능하다.
+# def kakakao_getText(hwnd):
+#     w = win32con
+#     hwndMain = win32gui.FindWindow(None,hwnd)
+#     hwndEdit = win32gui.FindWindowEx(hwndMain, None, "EVA_VH_ListControl_Dblclk", None)
     
+#     PostKeyEx(hwndEdit, ord('A'), [w.VK_CONTROL], False)
+#     time.sleep(0.5)
+#     PostKeyEx(hwndEdit, ord('C'), [w.VK_CONTROL], False)
+#     win32clipboard.OpenClipboard()
+#     content = win32clipboard.GetClipboardData()
+#     win32clipboard.CloseClipboard()
+#     print(content)
+#     a = content.split('\r\n')   # \r\n 으로 스플릿 __ 대화내용 인용의 경우 \r 때문에 해당안됨
+#     df = pd.DataFrame(a)    # DF 으로 바꾸기
+#     print(df)
+#     df[0] = df[0].str.replace('\[([\S\s]+)\] \[(오전|오후)([0-9:\s]+)\] ', '')  # 정규식으로 채팅내용만 남기기
+#     print(df[0])
+#     print(df.index[-2], df.iloc[-2, 0])
+#     return df.index[-2], df.iloc[-2, 0]
+
+
 def kakao_get_inputText(hwnd):
     hwndMain = win32gui.FindWindow(None,hwnd)
     hwndEdit = win32gui.FindWindowEx(hwndMain, None, "RICHEDIT50W", None)
-    PostKeyEx(hwndEdit, ord('A'), [win32con.VK_CONTROL], False)
-    time.sleep(0.5)
+    time.sleep(0.1) #이거 없다면 "a" 눌리는 버그가 생긴다.
+    PostKeyEx(hwndEdit, ord('A'), [win32con.VK_CONTROL], False) 
+    time.sleep(0.1)
     PostKeyEx(hwndEdit, ord('C'), [win32con.VK_CONTROL], False)
     win32clipboard.OpenClipboard()
     content = win32clipboard.GetClipboardData()
     win32clipboard.CloseClipboard()
-    print(content)
+    # print(content)
     return content
+
 
 def kakao_inputPast(hwnd,past_data):
     hwndMain = win32gui.FindWindow(None,hwnd)
@@ -242,16 +248,32 @@ def kakao_inputPast(hwnd,past_data):
     win32clipboard.EmptyClipboard() #없으면 복사를 잘 못함.
     win32clipboard.SetClipboardText(past_data)
     win32clipboard.CloseClipboard()
-
+    
+    time.sleep(0.1)
     PostKeyEx(hwndEdit, ord('A'), [win32con.VK_CONTROL], False)
-    time.sleep(0.5)
+    time.sleep(0.1)
     PostKeyEx(hwndEdit, ord('V'), [win32con.VK_CONTROL], False)
 
 
-# chatroom_go("상준")
-# PostKeyEx(hwndListControl, ord('A'), [w.VK_CONTROL], False)
-# PostKeyEx(hwndListControl, ord('C'), [w.VK_CONTROL], False)
-# win32gui.GetWindowText(edit_control)
+#현재 채팅방에서, 입력창의 내용을 복사해서 gpt를 돌리고 결과값을 넣어준다.
+def kakao_gpt():
+    hwnd=kakao_room_serach()
+    inputdate=kakao_get_inputText(hwnd)
+    chatgpt_input(inputdate)
+    print(f"입력값은 :\n {inputdate}")
+    while True:
+        if chatgpt_automation.Gpt_result_data != None:
+            gpt_result=chatgpt_automation.Gpt_result_data
+            break
+    kakao_inputPast(hwnd,gpt_result)
+    chatgpt_automation.Gpt_result_data=None
+
+#f12누를때마다. gpt가 실행된다.
+def on_press(key):
+    global inputdata
+    if key == Key.f12 :
+        # 파이썬 코드가 실행됩니다.
+        kakao_gpt()
 
 
 #------사용법------#
@@ -265,17 +287,10 @@ if __name__=="__main__":
     # send_img("상준",img_path)
 
     #3.채팅방에 메세지 보내기.
-    # chatroom_go("상준")
-    # send_msg("상준","어찌 잘 지내고 있니?")
-    # kakakao_getText("상준")
     chatgpt_start()
-    time.sleep(5)
-    inputdate=kakao_get_inputText("상준")
-    chatgpt_input(inputdate)
-    while True:
-        if chatgpt_automation.Gpt_result_data != None:
-            gpt_result=chatgpt_automation.Gpt_result_data
-            break
-    kakao_inputPast("상준",gpt_result)
-    chatgpt_automation.Gpt_result_data=None
-    
+
+    with Listener(on_press=on_press) as listener:
+        listener.join()
+
+
+
