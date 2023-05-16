@@ -23,6 +23,7 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         self.workinter_checkbox.clicked.connect(self.workinterbal)
         self.Reservationtime_checkbox.clicked.connect(self.timeswitch)
         self.com_workinter_checkbox.clicked.connect(self.comworkinterbal)
+        # self.com_workinter_checkbox.setEnabled(False) #임시로 비활성화 시킴.
     
     def initdata(self):
         self.url1=None
@@ -65,11 +66,52 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         elif self.com_workinter_checkbox.isChecked() == False:
             self.com_workinterbal_label.setEnabled(False)
             self.com_workinterbal_spinbox.setEnabled(False)
+
     #창 닫는 코드다.
     def closeEvent(self, event: QtCore.QEvent):
         # 여기에 필요한 동작을 정의합니다.
         print("창이 닫힙니다.")
         event.accept()  # 이 코드는 창이 실제로 닫히도록 합니다.
+
+
+    #작업컴퓨터 간격 활성화/비활성화
+    def active_workcom_interbal(self,parent):
+
+        #모든컴퓨터 작업시, 컴퓨터간 작업간격 활성화.
+        if parent.all_check_btn.isChecked():
+            self.com_workinter_checkbox.setEnabled(True)
+            self.com_workinter_checkbox.setChecked(True)
+            self.com_workinterbal_label.setEnabled(True)
+            self.com_workinterbal_spinbox.setEnabled(True)
+        elif parent.all_check_btn.isChecked() == False:
+            self.com_workinter_checkbox.setEnabled(False)
+            self.com_workinter_checkbox.setChecked(False)
+            self.com_workinterbal_label.setEnabled(False)
+            self.com_workinterbal_spinbox.setEnabled(False)
+        
+        #작업컴퓨터 1개 이상시,컴퓨터간 작업간격 활성화.
+        작업컴퓨터리스트=[]
+        if parent.parck_check_btn.isChecked():
+            작업컴퓨터리스트.append("박경희")
+        if parent.itw_check_btn.isChecked():
+            작업컴퓨터리스트.append("임태원테스트")
+        if parent.sangjun_check_btn.isChecked():
+            작업컴퓨터리스트.append("테스트")
+        if parent.sanghyone_check_btn.isChecked():
+            작업컴퓨터리스트.append("테스트")
+        
+        if len(작업컴퓨터리스트) > 1:
+            self.com_workinter_checkbox.setEnabled(True)
+            self.com_workinter_checkbox.setChecked(True)
+            self.com_workinterbal_label.setEnabled(True)
+            self.com_workinterbal_spinbox.setEnabled(True)
+
+        else:
+            self.com_workinter_checkbox.setEnabled(False)
+            self.com_workinter_checkbox.setChecked(False)
+            self.com_workinterbal_label.setEnabled(False)
+            self.com_workinterbal_spinbox.setEnabled(False)
+
 
     def okayclick(self):
         self.url1=str(self.url1_inputEdit.text())
@@ -102,7 +144,7 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
             self.최대가격=0
             #최대가격 자동입력(최소가격만 입력하면 됨)
 
-        #2.작업시간, 예약시간 지정하기.
+        #2.작업시간, 예약시간 지정하기.(아지 개발하지 않았다.)
         if self.workinter_checkbox.isChecked() == False:
             self.작업간격=0
 
@@ -111,9 +153,9 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
             self.작업시간=datetime.now().strftime("%Y-%m-%d-%H:%M")
         elif self.Reservationtime_checkbox.isChecked():
             #예약시간만들기.(데이트타임 객체화 시킨다.)
-            현재시간재료=datetime.strptime(self.예약시간,"%H:%M") #시간,분만 객체화(년,월,일이 없다.)
+            예약시간=datetime.strptime(self.예약시간,"%H:%M") #시간,분만 객체화(년,월,일이 없다.)
             현재시간=datetime.now() 
-            self.작업시간=현재시간재료.replace(year=현재시간.year,month=현재시간.month,day=현재시간.day).strftime("%Y-%m-%d-%H:%M")
+            self.작업시간=예약시간.replace(year=현재시간.year,month=현재시간.month,day=현재시간.day).strftime("%Y-%m-%d-%H:%M")
             
         #4.url필터링
         if self.url1.find("srp_product_ads&clickEventId") != -1:
@@ -129,7 +171,7 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         print("쿠팡입력데이터:",self.url1,self.url2,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지,self.작업시간)
         print("쿠팡입력데이터2:",self.컴작업간격,self.작업간격,self.작업시간,)
         #종료를 한다.
-        self.close()
+        # self.close()
 
     
 if __name__ == '__main__':

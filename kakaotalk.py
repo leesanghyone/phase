@@ -6,8 +6,12 @@ import win32clipboard
 import pandas as pd
 from chatgpt_automation import *
 import chatgpt_automation
-
 from pynput.keyboard import Key, Listener
+
+
+#업데이트 사항1.
+# 카카오톡과 지피티를 연결하였다. 여기서 지피티를 임포트해서 사용한다. 
+
 
 
 
@@ -276,6 +280,17 @@ def on_press(key):
         kakao_gpt()
 
 
+def keyboard_listener():
+    with Listener(on_press=on_press) as listener:
+        listener.join()
+
+
+def kakao_gpt_start():
+    chatgpt_start()
+    threading.Thread(target=keyboard_listener).start()
+
+
+
 #------사용법------#
 if __name__=="__main__": 
     # kakao_inputPast("상준","HELLOW")
@@ -286,11 +301,10 @@ if __name__=="__main__":
     # img_path='C:/Users/lsh92/Desktop/asdasd.png'
     # send_img("상준",img_path)
 
-    #3.채팅방에 메세지 보내기.
-    chatgpt_start()
+    kakao_gpt_start()
 
-    with Listener(on_press=on_press) as listener:
-        listener.join()
+
+
 
 
 

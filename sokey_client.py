@@ -1,6 +1,6 @@
 import socket,json,threading,time,datetime
 from PyQt5.QtWidgets import QTableWidgetItem
-# from excel import *
+from excel import *
 
 
 def initstater(ip=str,port=int):
@@ -19,26 +19,25 @@ def receiver(sock,guiparent=None):
     while True:
         작업종류설정=sock.recv(1024).decode("utf-8")
         if 작업종류설정=="가구매작업":
-            #동시에 2개의 쓰레드가 소켓을 사용하면 오류가 난다. 묶어서 사용해야됨.
-            print("가구매작업 결과물 데이터를 받았습니다.")
-        # #--------------넘어온 데이터로 엑셀 작업파트----------------------.
-        #     try:
-        #         platform="쿠팡"
-        #         workcom="박경희"
-        #         kakao="개발중"
-        #         product_title="경추베개"
-        #         review="너무 좋아요, 우리 모두 그렇게 했으면 좋겠어요. \n 아니야 !!!"
-        #         photoreview="X"
-        #         pointuse=None 
-        #         workstate="구매완료"
-        #         product_price=13000
-        #         add_exceldata(platform,workcom,kakao,product_title,review,photoreview,pointuse,workstate,product_price)
-        #     except:
-        #         create_excel()
-
-        #     print("엑셀 작업중입니다.")
-        #     #쓰레드에 락을 걸어서 겹치지 않게 작업을 해야 한다.
-        #     print("소켓이 종료되었습니다.")
+            with 쓰레드락: #동시에 2개의 쓰레드가 소켓을 사용하면 오류가 난다. 묶어서 사용해야됨.
+            #--------------엑셀 데이터 받기----------------------.
+                엑셀작업데이터=json.loads(sock.recv(8000).decode("utf-8"))
+                print("가구매작업 결과물 데이터를 받았습니다.")
+            #--------------넘어온 데이터로 엑셀 작업파트----------------------.
+                try:
+                    platform=엑셀작업데이터["플랫폼"]
+                    workcom=엑셀작업데이터["pc이름"]
+                    kakao=엑셀작업데이터["pc이름"]
+                    product_title=엑셀작업데이터["상품명"]
+                    review=엑셀작업데이터["리뷰"]
+                    photoreview="X"
+                    pointuse=엑셀작업데이터["사용포인트"]
+                    workstate=엑셀작업데이터["작업상태"]
+                    product_price=엑셀작업데이터["상품금액"]
+                    add_exceldata(platform,workcom,kakao,product_title,review,photoreview,pointuse,workstate,product_price)
+                except:
+                    create_excel()
+                print("엑셀 작업이 끝났습니다.")
     #--------------서버정보업데이트----------------------.
         elif 작업종류설정=="서버정보업데이트":
             #--------------서버일감 데이터 받기----------------------.

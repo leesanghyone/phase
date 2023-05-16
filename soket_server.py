@@ -102,18 +102,19 @@ def worker(c_sock):
 
             #--------------결과물을 클라측에 전송(엑셀자료)----------------------.
             # print("결과물을 클라측에 전송(엑셀자료)")
-            # 엑셀작업데이터={
-            #     "pc이름": pcname,
-            #     "플랫폼": "https://copang.com",
-            #     "카카오톡아이디": "https://copang.com",
-            #     "작업시간": "https://copang.com",
-            #     "상품명": "https://copang.com",
-            #     "금액": "https://copang.com",
-            #     "사용포인트": "https://copang.com",
-            #     "리뷰": "https://copang.com",
-            # }
-            # c_sock.sendall(json.dumps(엑셀작업데이터).encode("utf-8"))
-            # print("결과물을 클라측에 전송(엑셀자료) 완료")
+            엑셀작업데이터={
+                "pc이름": pcname,
+                "플랫폼": "https://copang.com",
+                "카카오톡아이디": "https://copang.com",
+                "작업시간": "https://copang.com",
+                "상품명": "https://copang.com",
+                "상품금액": "https://copang.com",
+                "사용포인트": "https://copang.com",
+                "리뷰": "https://copang.com",
+                "작업상태": "구매완료"
+            }
+            c_sock.sendall(json.dumps(엑셀작업데이터).encode("utf-8"))
+            print("결과물을 클라측에 전송(엑셀자료) 완료")
 
             #-------------클라이언츠측에 서버간소화정보를 보내준다.----------------.
             with 쓰레드락:

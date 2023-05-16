@@ -7,13 +7,14 @@ from sokey_client import *
 import sokey_client
 from waitlist_dialog_gui_secondary_processing import WaitlistDialog
 from datetime import datetime,timedelta
-
+import kakaotalk
 class Main_Gui(QMainWindow,Ui_mainWindow):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
         self.initsiganal()
         self.initinputdata()
+        kakaotalk.kakao_gpt_start()
 
 
     def initinputdata(self):
@@ -44,7 +45,6 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           self.박경희컴퓨터sock=soket_start("127.0.0.1",12000,self) #한번실행되면 계속 연결을 유지한다.
         except:
           pass
-
   #-------------서버에서일 받아오고, 수정하고 보내는 역할을 해준다.--------#
         def 서버일감불러오기(soket):
           self.serverinfo=WaitlistDialog()
@@ -184,6 +184,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           if self.platform_check_coopang.isChecked():
             coupang_input=Coupang_inputData_Gui()
             coupang_input.show()
+            coupang_input.active_workcom_interbal(self) #작업컴 활성화 함수(부모 데이터로 컴퓨터간 작업간격을 활성)
             coupang_input.exec_()
 
             self.url1=coupang_input.url1

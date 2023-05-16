@@ -74,7 +74,7 @@ Clear the field value and insert it as the result value.
 개인정보 제공은 끝이다. 이제부터 개인정보 속성만 채워서 돌려주면 된다.
 
 '''
-openai.api_key ="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"
+openai.api_key ="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"
 역할부여메세지="From now on, you are an assistant. If I provide personal information, you will remember that information. And when I request it, you should fill in the necessary parts with personal information and provide it to me."
 messages=[{"role": "system", "content":f"{역할부여메세지}"}]
 messages=[]
@@ -107,6 +107,7 @@ def chatgpt_init():
         Gpt_result_data = assistant_message
         #대답을 계속누적을 한다(요금증가)
         # messages.append({"role": "assistant", "content": f"{assistant_message}"})
+        messages.remove(messages[-1])
 
         #응답을 출력합니다.
         print("gpt 응답 : ", assistant_message)
