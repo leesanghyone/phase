@@ -13,9 +13,6 @@ from pynput.keyboard import Key, Listener
 # 카카오톡과 지피티를 연결하였다. 여기서 지피티를 임포트해서 사용한다. 
 
 
-
-
-
 #현재 실행 중인 모든 창 핸들 가져오기
 def kakao_room_serach():
     #1.현재 실행 중인 모든 창 핸들 가져오기
@@ -295,13 +292,16 @@ def kakao_gpt_start():
 if __name__=="__main__": 
     # kakao_inputPast("상준","HELLOW")
     #1.퍈매자 채팅방 이름 찾기.
-    # kakao_room_serach()
+    채팅방이름=kakao_room_serach()
+    print(채팅방이름)
 
     #2.채팅방에 이미지 보내기.
     # img_path='C:/Users/lsh92/Desktop/asdasd.png'
     # send_img("상준",img_path)
 
-    kakao_gpt_start()
+
+    #챗 지피티 사용하기.
+    # kakao_gpt_start()
 
 
 

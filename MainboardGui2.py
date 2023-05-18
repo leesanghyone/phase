@@ -13,11 +13,10 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
         super().__init__()
         self.setupUi(self)
         self.initsiganal()
-        self.initinputdata()
-        kakaotalk.kakao_gpt_start()
+        self.init_inputdata()
+        # kakaotalk.kakao_gpt_start()
 
-
-    def initinputdata(self):
+    def init_inputdata(self):
       #가구매 작업의 필수데이터.
       self.url1=None
       self.url2=None
@@ -40,17 +39,29 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
       self.컴작업간격=None
 
     def initsiganal(self):
-  #------------------소켓활성화 함수들----------#
-        try:
-          self.박경희컴퓨터sock=soket_start("127.0.0.1",12000,self) #한번실행되면 계속 연결을 유지한다.
-        except:
-          pass
+  #------------------소켓활성화 함수들----------# 
+        #++++컴퓨터 추가시 추가작업이 필요함++++
+        self.sockets={
+            "박경희" : {"adrres": ("127.0.0.1",12000),"socket":None},
+            "임태원" : {"adrres": ("127.0.0.1",12001) ,"socket":None},
+            "이상준" : {"addres": ("127.0.0.1",12002),"socket":None},
+            "이상현" : {"addres": ("127.0.0.1",12003),"socket":None},
+          }
+        def 소켓연결함수(): 
+          for key in self.sockets.keys():
+            try:
+             self.sockets[key]["socket"]=soket_start(*self.sockets[key]["adrres"],self)
+            except Exception as e:
+              self.sockets[key]["socket"]=None
+              print(f"{key} 컴퓨터의 소켓연결에 실패했습니다. {e}")
+        소켓연결함수()
+
+        
   #-------------서버에서일 받아오고, 수정하고 보내는 역할을 해준다.--------#
         def 서버일감불러오기(soket):
           self.serverinfo=WaitlistDialog()
           self.serverinfo.show()  
-          작업방식="서버정보업데이트" #추후에 gui에서 일회용으로 계속 데이터를 보낼것이다.
-          socket_sender(soket,작업방식) #데이터를 보낸다.
+          socket_sender(soket,"서버정보업데이트") #데이터를 보낸다.
     #-------------클라이언트 소켓에서 waitlist데이터를 로드한다.---------#
           while True:
             if sokey_client.waitlist != None: #타이밍에 따라서 waitlist값이 바뀐다.
@@ -70,6 +81,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           ##데이터초기화 하기
           sokey_client.waitlist=None
           self.waitlist=None
+
         #-----------------이코드는 쓰지 않지만 교육용으로 남겨놓는다.----------#
         def 서버미니정보얻기(sock,btn):
           #모든 서버에게 갱신요청을 보낸다.
@@ -85,21 +97,38 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
             except:
               print("서버간소화정보를 받아오지 못했습니다.")
               break
+        #--------------위위위---이코드는 쓰지 않지만 교육용으로 남겨놓는다.----------#
 
-        def 갱신버튼누름():
-          # 서버미니정보얻기(self.박경희컴퓨터sock,self.server1_btn)
-          socket_sender(self.박경희컴퓨터sock,"서버간소화정보")
-        
+        ###++++++컴퓨터 추가시 작업필요함++++++++++
+        def 갱신버튼누름(): 
+          for key in self.sockets.keys():
+            if self.sockets[key]["socket"] != None: #서버가 연결되있을때만 작동한다.
+              socket_sender(self.sockets[key]["socket"],"서버간소화정보")
 
-  #------------------작업컴퓨터 클리시 서버리스트창 켜는함수.----------#
+
+  #------------------작업컴퓨터 클릭시 서버리스트창 켜는함수.----------#
         def 박경희서버창():
-           서버일감불러오기(self.박경희컴퓨터sock)
-             
-        def 두번째서버창():
-           print(self.waitlist)
-
+          if self.sockets["박경희"]["socket"] != None: #서버가 연결되있을때만 작동한다.
+           서버일감불러오기(self.sockets["박경희"]["socket"])
+          else:
+            QMessageBox.warning(self,"경고","서버가 연결되지 않았습니다.")
+        def 임태원서버창():
+          if self.sockets["박경희"]["socket"] != None: #서버가 연결되있을때만 작동한다.
+           서버일감불러오기(self.sockets["임태원"]["socket"])
+          else:
+            QMessageBox.warning(self,"경고","서버가 연결되지 않았습니다.")
+        def 이상준서버창():
+          if self.sockets["이상준"]["socket"] != None: #서버가 연결되있을때만 작동한다.
+           서버일감불러오기(self.sockets["이상준"]["socket"])
+          else:
+            QMessageBox.warning(self,"경고","서버가 연결되지 않았습니다.")
+        def 이상현서버창():
+          if self.sockets["이상현"]["socket"] != None: #서버가 연결되있을때만 작동한다.
+           서버일감불러오기(self.sockets["이상현"]["socket"])
+          else:
+            QMessageBox.warning(self,"경고","서버가 연결되지 않았습니다.")
+  
   #----------------------작업방식 기능함수.----------------------#
-        
         def 구매조건():
           self.Platform_group.setEnabled(True)
           self.WorkCom_grop.setEnabled(True)
@@ -131,13 +160,13 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
               elif not self.all_check_btn.isChecked():
                 print("체크된 컴퓨터만 가구매 작업을 진행합니다.")
                 if self.parck_check_btn.isChecked():
-                  작업컴퓨터리스트.append(self.박경희컴퓨터sock)
+                  작업컴퓨터리스트.append(self.sockets["박경희"]["socket"]) #서버연결안되어있으면 none값으로 들어감.
                 if self.itw_check_btn.isChecked():
-                  작업컴퓨터리스트.append("임태원테스트")
+                  작업컴퓨터리스트.append(self.sockets["임태원"]["socket"])
                 if self.sangjun_check_btn.isChecked():
-                  작업컴퓨터리스트.append("테스트")
+                  작업컴퓨터리스트.append(self.sockets["이상준"]["socket"])
                 if self.sanghyone_check_btn.isChecked():
-                  작업컴퓨터리스트.append("테스트")
+                  작업컴퓨터리스트.append(self.sockets["이상현"]["socket"])
               random.shuffle(작업컴퓨터리스트) #작업컴퓨터 무작위로 순서 바꾸기.
               print(작업컴퓨터리스트)
               #------------------가구매 데이터 유효성 검사--------------------#
@@ -148,7 +177,8 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
               for 가구매데이터 in self.유효성검사():
                 print(가구매데이터)
                 if 가구매데이터 == None:
-                  QMessageBox.warning(self,"경고","데이터를 입력해주세요.")
+                  QMessageBox.warning(self,"경고",f"{가구매데이터} 데이터를 입력해주세요.")
+                  self.init_inputdata()
                   return
               #------------------가구매 데이터 작업컴에 보내기.------------------#
               for 작업컴 in 작업컴퓨터리스트:
@@ -172,12 +202,15 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
                 "배송메세지" : self.배송메세지
                 }
                 print(가구매작업데이터)
-                socket_sender(작업컴,"가구매작업",가구매작업데이터)
+                if 작업컴 != None:
+                  socket_sender(작업컴,"가구매작업",가구매작업데이터)
+              time.sleep(0.5) #이게 없으면 밑에 소켓이랑 붙어서 나감.
                 #------------------작업컴퓨터 간소화 정보 받기..------------------
-              for 작업컴 in 작업컴퓨터리스트:
-                socket_sender(작업컴,"서버간소화정보")
+              for 작업컴 in 작업컴퓨터리스트: 
+                if 작업컴 != None:
+                  socket_sender(작업컴,"서버간소화정보")
               #초기화작업
-              self.initinputdata()
+              self.init_inputdata()
                         
   #----------------------데이터 인풋받는 창----------------------#
         def 쿠팡데이터입력창():
@@ -190,8 +223,8 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
             self.url1=coupang_input.url1
             self.url2=coupang_input.url2
             self.플랫폼=coupang_input.플랫폼
-            self.카카오톡="개발중"
-            try: #그냥 x누를시, 값이 선언이 안되어서 트라이처리.
+            self.카카오톡=kakaotalk.kakao_room_serach()
+            try: # x누를시 none값 받아오면 오류방지.
               self.작업시간=datetime.strptime(coupang_input.작업시간,"%Y-%m-%d-%H:%M")
             except:
               self.작업시간=None
@@ -223,8 +256,11 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
         self.yes_btn.clicked.connect(확인버튼)
         ###2.서버창켜는 슬롯.
         self.server1_btn.clicked.connect(박경희서버창)
-        self.server2_btn.clicked.connect(두번째서버창)
+        self.server2_btn.clicked.connect(임태원서버창)
+        self.server3_btn.clicked.connect(이상준서버창)
+        self.server4_btn.clicked.connect(이상현서버창)
         self.allserver_btn.clicked.connect(갱신버튼누름)
+
         ###3.데이터입력창
         self.platform_check_coopang.clicked.connect(쿠팡데이터입력창)
 

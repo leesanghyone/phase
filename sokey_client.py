@@ -18,16 +18,16 @@ def receiver(sock,guiparent=None):
     waitlist=None
     while True:
         작업종류설정=sock.recv(1024).decode("utf-8")
-        if 작업종류설정=="가구매작업":
+        if 작업종류설정=="엑셀작업":
             with 쓰레드락: #동시에 2개의 쓰레드가 소켓을 사용하면 오류가 난다. 묶어서 사용해야됨.
             #--------------엑셀 데이터 받기----------------------.
                 엑셀작업데이터=json.loads(sock.recv(8000).decode("utf-8"))
                 print("가구매작업 결과물 데이터를 받았습니다.")
-            #--------------넘어온 데이터로 엑셀 작업파트----------------------.
+            #--------------엑셀 데이터로 , 엑셀 작업파트----------------------.
                 try:
                     platform=엑셀작업데이터["플랫폼"]
                     workcom=엑셀작업데이터["pc이름"]
-                    kakao=엑셀작업데이터["pc이름"]
+                    kakao=엑셀작업데이터["카카오톡"]
                     product_title=엑셀작업데이터["상품명"]
                     review=엑셀작업데이터["리뷰"]
                     photoreview="X"
@@ -37,7 +37,10 @@ def receiver(sock,guiparent=None):
                     add_exceldata(platform,workcom,kakao,product_title,review,photoreview,pointuse,workstate,product_price)
                 except:
                     create_excel()
-                print("엑셀 작업이 끝났습니다.")
+                finally:
+                    sock.sendall("작업끝".encode("utf-8"))
+                    print("엑셀 작업이 끝났습니다.")
+
     #--------------서버정보업데이트----------------------.
         elif 작업종류설정=="서버정보업데이트":
             #--------------서버일감 데이터 받기----------------------.
@@ -46,6 +49,7 @@ def receiver(sock,guiparent=None):
                 waitlist=json.loads(waitlist) 
                 print("서버정보 업데이트 데이터를 받았습니다.")
                 print(waitlist)
+                sock.sendall("작업끝".encode("utf-8"))
         
         elif 작업종류설정=="서버간소화정보":
             with 쓰레드락:
@@ -53,14 +57,25 @@ def receiver(sock,guiparent=None):
                 # miniwaitlist={}
                 print(f"서버간소화정보를 받았습니다.응답:{응답데이터}")
                 outip,outport=sock.getpeername() #연결된 대상의 ip와, 포트번호를 보여준다.
-                print(f"{outip}:{outport}에서 서버간소화정보를 받았습니다.")
-                # miniwaitlist[outip]=응답데이터 #딕셔너리 값을 넣어준다.
+                #정보확인용이다.
+                # print(f"{outip}:{outport}에서 서버간소화정보를 받았습니다.")
+                # print(type(outip),type(outport))
+                # miniwaitlist[outip]=응답데이터 #딕셔너리 값을 넣어준다.(학습용)
                 # print(miniwaitlist.get(outip))
                 
-                #+++++컴퓨터 추가시 추가작업+++++
-                if guiparent != None:
-                    if outip=="127.0.0.1":
-                        guiparent.server1_btn.setText(응답데이터)
+                #+++++컴퓨터 추가시 추가작업+++++ 
+                if guiparent != None: # 컴퓨터의 미니 작업갯수 표시를 바꾼다.
+                    if outip=="127.0.0.1" and outport == 12000:  #박경희
+                        guiparent.server1_btn.setText(응답데이터) #부모의 gui에 서버숫자를 바꾼다.
+                    elif outip=="127.0.0.1" and outport ==12001:  #임태원
+                        guiparent.server2_btn.setText(응답데이터)
+                    elif outip=="127.0.0.1" and outport ==12002: #이상준
+                        guiparent.server3_btn.setText(응답데이터)
+                    elif outip=="127.0.0.1" and outport ==12003: #이상현.
+                        guiparent.server4_btn.setText(응답데이터)
+                #작업끝데이터 보내기.
+                sock.sendall("작업끝".encode("utf-8"))
+      
         else:
             print(f"작업종류설정이 잘못들어왔습니다.{작업종류설정}")
             time.sleep(1)
@@ -77,6 +92,9 @@ def socket_sender(sock,작업방식,가구매작업데이터=None):
             sendData = json.dumps(가구매작업데이터)
             print(sendData)
             sock.sendall(sendData.encode("utf-8"))
+            응답데이터=sock.recv(1024).decode("utf-8")
+            if 응답데이터=="작업끝":
+                print("가구매 작업 데이터를 보냈습니다.")
         ##--------------2.서버정보업데이트 정보 요청하기 ----------------------
         elif 작업방식 == "서버정보업데이트":
             print("서버정보업데이트 정보요청을 보냈습니다")
@@ -101,7 +119,7 @@ if __name__ == '__main__':
             "URL2" : "공백",
             "플랫폼" : "쿠팡",
             "카카오톡" : "개발중",
-            "작업시간" : datetime.datetime.now().strftime('%Y-%m-%d-%H:%M'),
+            "작업시간" : datetime.now().strftime('%Y-%m-%d-%H:%M'),
             "장바구니" : False,
             "포인트" : False,
             "알림받기" : False,

@@ -171,7 +171,7 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         print("쿠팡입력데이터:",self.url1,self.url2,self.포인트,self.장바구니,self.구매수량,self.체류시간,self.옵션1,self.옵션2,self.찜작업,self.최소가격,self.최대가격,self.배송메세지,self.작업시간)
         print("쿠팡입력데이터2:",self.컴작업간격,self.작업간격,self.작업시간,)
         #종료를 한다.
-        # self.close()
+        self.close()
 
     
 if __name__ == '__main__':
