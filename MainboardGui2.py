@@ -4,11 +4,11 @@ from PyQt5.QtCore import*
 from maingui import Ui_mainWindow
 from coupang_input_Gui_secondary_processing import * 
 
-# from sokey_client_copy import *
-# import sokey_client_copy
-
 from sokey_client_copy import *
 import sokey_client_copy
+
+# from sokey_client_copy import *
+# import sokey_client_copy
 
 from waitlist_dialog_gui_secondary_processing import WaitlistDialog
 from datetime import datetime,timedelta
@@ -44,6 +44,11 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
       #가구매작업의 선택데이터.
       self.컴작업간격=None
 
+
+    def log_append(self,msg):
+      datetime_now=datetime.now().strftime("%Y-%m-%d-%H:%M:")
+      self.log_plainEdit.appendPlainText(f"{datetime_now} : {msg}")
+
     def initsiganal(self):
   #------------------소켓활성화 함수들----------# 
         #++++컴퓨터 추가시 추가작업이 필요함++++
@@ -54,10 +59,12 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
             "이상현" : {"addres": ("127.0.0.1",12003),"socket":None},
           }
         def 소켓연결함수(): 
+          self.log_append("소켓연결함수가 실행되었습니다.")
           for key in self.sockets.keys():
             try:
              self.sockets[key]["socket"]=soket_start(*self.sockets[key]["adrres"],self)
              print(f"{key} 컴퓨터의 소켓연결에 성공했습니다.")
+             self.log_append(f" {key} 컴퓨터 연결되었습니다.")
             except Exception as e:
               self.sockets[key]["socket"]=None
               print(f"{key} 컴퓨터의 소켓연결에 실패했습니다. {e}")
@@ -68,6 +75,8 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
             if self.sockets[key]["socket"] == None:
               try:
                 self.sockets[key]["socket"]=soket_start(*self.sockets[key]["adrres"],self)
+                print(f"{key} 컴퓨터의 소켓연결에 성공했습니다.")
+                self.log_append(f" {key} 컴퓨터 연결되었습니다.")
               except Exception as e:
                 self.sockets[key]["socket"]=None
                 print(f"{key} 컴퓨터의 소켓연결에 실패했습니다. {e}")
@@ -101,7 +110,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           for key in self.sockets.keys():
             if self.sockets[key]["socket"] != None: #서버가 연결되있을때만 작동한다.
               socket_sender(self.sockets[key]["socket"],"서버간소화정보")
-
+              
   #------------------작업컴퓨터 클릭시 서버리스트창 켜는함수.----------#
         def 박경희서버창():
           if self.sockets["박경희"]["socket"] != None: #서버가 연결되있을때만 작동한다.
@@ -211,6 +220,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
                   socket_sender(작업컴,"서버간소화정보")
               #초기화작업
               self.init_inputdata()
+              self.log_append(f"가구매 데이터를 보냈습니다.")
                         
   #----------------------데이터 인풋받는 창----------------------#
         def 쿠팡데이터입력창():
