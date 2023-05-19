@@ -3,11 +3,17 @@ from PyQt5.QtWidgets  import*
 from PyQt5.QtCore import* 
 from maingui import Ui_mainWindow
 from coupang_input_Gui_secondary_processing import * 
-from sokey_client import *
-import sokey_client
+
+# from sokey_client_copy import *
+# import sokey_client_copy
+
+from sokey_client_copy import *
+import sokey_client_copy
+
 from waitlist_dialog_gui_secondary_processing import WaitlistDialog
 from datetime import datetime,timedelta
 import kakaotalk
+
 class Main_Gui(QMainWindow,Ui_mainWindow):
     def __init__(self):
         super().__init__()
@@ -43,7 +49,7 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
         #++++컴퓨터 추가시 추가작업이 필요함++++
         self.sockets={
             "박경희" : {"adrres": ("127.0.0.1",12000),"socket":None},
-            "임태원" : {"adrres": ("127.0.0.1",12001) ,"socket":None},
+            "임태원" : {"adrres": ("127.0.0.1",12001),"socket":None},
             "이상준" : {"addres": ("127.0.0.1",12002),"socket":None},
             "이상현" : {"addres": ("127.0.0.1",12003),"socket":None},
           }
@@ -51,21 +57,29 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           for key in self.sockets.keys():
             try:
              self.sockets[key]["socket"]=soket_start(*self.sockets[key]["adrres"],self)
+             print(f"{key} 컴퓨터의 소켓연결에 성공했습니다.")
             except Exception as e:
               self.sockets[key]["socket"]=None
               print(f"{key} 컴퓨터의 소켓연결에 실패했습니다. {e}")
         소켓연결함수()
 
-        
+        def 연결상태체크및재연결():
+          for key in self.sockets.keys():
+            if self.sockets[key]["socket"] == None:
+              try:
+                self.sockets[key]["socket"]=soket_start(*self.sockets[key]["adrres"],self)
+              except Exception as e:
+                self.sockets[key]["socket"]=None
+                print(f"{key} 컴퓨터의 소켓연결에 실패했습니다. {e}")
   #-------------서버에서일 받아오고, 수정하고 보내는 역할을 해준다.--------#
         def 서버일감불러오기(soket):
           self.serverinfo=WaitlistDialog()
           self.serverinfo.show()  
           socket_sender(soket,"서버정보업데이트") #데이터를 보낸다.
     #-------------클라이언트 소켓에서 waitlist데이터를 로드한다.---------#
-          while True:
-            if sokey_client.waitlist != None: #타이밍에 따라서 waitlist값이 바뀐다.
-              self.waitlist=sokey_client.waitlist
+          while True: ##############################################################여기서 에러가 발생한다################################
+            if sokey_client_copy.waitlist != None: #타이밍에 따라서 waitlist값이 바뀐다.
+              self.waitlist=sokey_client_copy.waitlist
               break
           #--------------#웨잇리스트로 gui를 구현한다.---------#
           #소켓->서버데이터->waitgui->구현.
@@ -79,25 +93,8 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
           elif 작업방식=="서버수정없음":
             print("수정데이터를 보내지않음.")
           ##데이터초기화 하기
-          sokey_client.waitlist=None
+          sokey_client_copy.waitlist=None
           self.waitlist=None
-
-        #-----------------이코드는 쓰지 않지만 교육용으로 남겨놓는다.----------#
-        def 서버미니정보얻기(sock,btn):
-          #모든 서버에게 갱신요청을 보낸다.
-          socket_sender(sock,"서버간소화정보")
-          while True:
-            try:
-              if len(sokey_client.miniwaitlist) >= 1: #서버가 1개이상이면
-                서버미니작업갯수=sokey_client.miniwaitlist
-                ip,port=sock.getpeername()
-                서버미니작업갯수=서버미니작업갯수.get(ip)
-                btn.setText(서버미니작업갯수)
-                break
-            except:
-              print("서버간소화정보를 받아오지 못했습니다.")
-              break
-        #--------------위위위---이코드는 쓰지 않지만 교육용으로 남겨놓는다.----------#
 
         ###++++++컴퓨터 추가시 작업필요함++++++++++
         def 갱신버튼누름(): 
@@ -105,28 +102,31 @@ class Main_Gui(QMainWindow,Ui_mainWindow):
             if self.sockets[key]["socket"] != None: #서버가 연결되있을때만 작동한다.
               socket_sender(self.sockets[key]["socket"],"서버간소화정보")
 
-
   #------------------작업컴퓨터 클릭시 서버리스트창 켜는함수.----------#
         def 박경희서버창():
           if self.sockets["박경희"]["socket"] != None: #서버가 연결되있을때만 작동한다.
            서버일감불러오기(self.sockets["박경희"]["socket"])
           else:
             QMessageBox.warning(self,"경고","서버가 연결되지 않았습니다.")
+            연결상태체크및재연결()
         def 임태원서버창():
           if self.sockets["박경희"]["socket"] != None: #서버가 연결되있을때만 작동한다.
            서버일감불러오기(self.sockets["임태원"]["socket"])
           else:
             QMessageBox.warning(self,"경고","서버가 연결되지 않았습니다.")
+            연결상태체크및재연결()
         def 이상준서버창():
           if self.sockets["이상준"]["socket"] != None: #서버가 연결되있을때만 작동한다.
            서버일감불러오기(self.sockets["이상준"]["socket"])
           else:
             QMessageBox.warning(self,"경고","서버가 연결되지 않았습니다.")
+            연결상태체크및재연결()
         def 이상현서버창():
           if self.sockets["이상현"]["socket"] != None: #서버가 연결되있을때만 작동한다.
            서버일감불러오기(self.sockets["이상현"]["socket"])
           else:
             QMessageBox.warning(self,"경고","서버가 연결되지 않았습니다.")
+            연결상태체크및재연결()
   
   #----------------------작업방식 기능함수.----------------------#
         def 구매조건():

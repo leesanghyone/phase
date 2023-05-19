@@ -7,7 +7,7 @@ def initstater(ip=str,port=int):
     global waitlist,workerlist,쓰레드락
     #--------------사전준비 자료다.----------------------.
     #테스트용 나중에 지우면됨.
-    test_work1={"URL": "https://copang.com", "URL2" :"공백", "플랫폼" : "네이버", "카카오톡" :"개발중입니다", "작업시간" : datetime.strftime((datetime.now()+timedelta(minutes=15)),'%Y-%m-%d-%H:%M'),"장바구니" : False, "알림받기" : False, "포인트" : False, "최소가격" : 0, "최대가격" : 0, "찜작업" : False, "알림받기" : False, "페이지체류시간" : 110, "옵션1" : 2, "옵션2" : 2, "구매수량" : 1, "배송메세지" : "너무좋아요."}
+    test_work1={"URL": "https://copang.com", "URL2" :"공백", "플랫폼" : "쿠팡", "카카오톡" :"개발중입니다", "작업시간" : datetime.strftime((datetime.now()+timedelta(minutes=15)),'%Y-%m-%d-%H:%M'),"장바구니" : False, "알림받기" : False, "포인트" : False, "최소가격" : 0, "최대가격" : 0, "찜작업" : False, "알림받기" : False, "페이지체류시간" : 110, "옵션1" : 2, "옵션2" : 2, "구매수량" : 1, "배송메세지" : "너무좋아요."}
     test_work2={"URL": "https://naver.com", "URL2" :"공백", "플랫폼" : "쿠팡", "카카오톡" :"개발중입니다", "작업시간" : datetime.strftime((datetime.now()+timedelta(minutes=30)),'%Y-%m-%d-%H:%M'),"장바구니" : False, "알림받기" : False, "포인트" : False, "최소가격" : 0, "최대가격" : 0, "찜작업" : False, "알림받기" : False, "페이지체류시간" : 110, "옵션1" : 2, "옵션2" : 2, "구매수량" : 1, "배송메세지" : "슈바..."}
     
     waitlist=[test_work1,test_work2]
@@ -27,7 +27,8 @@ def receiver(c_sock):
     global waitlist,stop_event
     while True:
     #--------------가구매작업을 처리한다.---------------------.
-        작업방식=c_sock.recv(1024).decode("utf-8")
+        작업방식=c_sock.recv(1024).decode("utf-8") #쓰레드락에 넣으면, 다른곳엣 쓰레드가 쓰는 것을 막는다.
+        
         if 작업방식=="가구매작업":
             with 쓰레드락: #이 다음부터 다른 작업가 겹치지 않게 만들어야 한다.
                 print("가구매작업을 데이터를 받겠습니다.")
@@ -38,6 +39,7 @@ def receiver(c_sock):
                 print("가구매작업을 데이터를 받았습니다.")
                 print(작업데이터)
                 c_sock.sendall("작업끝".encode("utf-8"))
+
     #--------------서버정보업데이트를 처리한다----------------------.            
         elif 작업방식=="서버정보업데이트":
             print("서버정보 업데이트를 클라이언트가 요청했습니다")
@@ -47,10 +49,7 @@ def receiver(c_sock):
                 #2.원본 그대로 보내는 부분이다.
                 보낼데이터=waitlist 
                 c_sock.sendall(json.dumps(보낼데이터).encode("utf-8"))
-                응답데이터=c_sock.recv(1024).decode("utf-8")
-                if 응답데이터=="작업끝": #응답데이터가 있어야, 클라이언측에 중복으로 데이터를 보내지 않는다.
-                    print("서버정보 업데이트를 클라이언트가 성공적으로 받았습니다.")
-        
+    
         elif 작업방식=="서버수정데이터": 
             with 쓰레드락:
                 print("서버수정데이터를 받았습니다")
@@ -130,19 +129,13 @@ def worker(c_sock):
                 time.sleep(0.5) #이게 없으면, 간소화정보랑+보낼데이터 뭉쳐서 보내진다.
                 c_sock.sendall(json.dumps(엑셀작업데이터).encode("utf-8"))
                 print("결과물을 클라측에 전송(엑셀자료) 완료")
-                응답데이터=c_sock.recv(1024).decode("utf-8")
-                if 응답데이터=="작업끝": #응답데이터가 있어야, 클라이언측에 중복으로 데이터를 보내지 않는다.
-                    print("클라이언트가 엑셀작업을 성공적으로 받았습니다.")
-                time.sleep(0.5) #이게 없으면, 간소화정보랑+보낼데이터 뭉쳐서 보내진다.
+                # time.sleep(0.5) #이게 없으면, 간소화정보랑+보낼데이터 뭉쳐서 보내진다.
             #-------------클라이언트측에 서버간소화정보를 보내준다.----------------.
                 c_sock.sendall("서버간소화정보".encode("utf-8"))
                 보낼데이터=str(len(waitlist))
-                print(f"서버간소화정보:{보낼데이터}")
+                print(f"서버간소화정보를 보냈습니다.:{보낼데이터}")
                 time.sleep(0.5) #이게 없으면, 간소화정보랑+보낼데이터 뭉쳐서 보내진다.
                 c_sock.send((보낼데이터).encode("utf-8"))
-                응답데이터=c_sock.recv(1024).decode("utf-8")
-                if 응답데이터=="작업끝": #응답데이터가 있어야, 클라이언측에 중복으로 데이터를 보내지 않는다.
-                    print("서버간소화정보를 클라이언트가 성공적으로 받았습니다.")
 
 #--------------타임매니저(웨잇리스트->워크리스트 일을 던져줌)----------
 def Time_manager(stop_event):

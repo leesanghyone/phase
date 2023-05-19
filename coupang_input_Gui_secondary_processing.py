@@ -96,9 +96,9 @@ class Coupang_inputData_Gui(QDialog,Ui_C_inputDialog):
         if parent.itw_check_btn.isChecked():
             작업컴퓨터리스트.append("임태원테스트")
         if parent.sangjun_check_btn.isChecked():
-            작업컴퓨터리스트.append("테스트")
+            작업컴퓨터리스트.append("이상준")
         if parent.sanghyone_check_btn.isChecked():
-            작업컴퓨터리스트.append("테스트")
+            작업컴퓨터리스트.append("이상현")
         
         if len(작업컴퓨터리스트) > 1:
             self.com_workinter_checkbox.setEnabled(True)

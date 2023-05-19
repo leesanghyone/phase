@@ -6,10 +6,10 @@ from excel import *
 def initstater(ip=str,port=int):
     global 쓰레드락
     쓰레드락=threading.Lock()
+  
     sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
     sock.connect((ip,port))
     return sock
-
 
 #--------------리시버 파트----------------------.
 def receiver(sock,guiparent=None):
@@ -18,13 +18,17 @@ def receiver(sock,guiparent=None):
     waitlist=None
     while True:
         작업종류설정=sock.recv(1024).decode("utf-8")
+        
         if 작업종류설정=="엑셀작업":
             with 쓰레드락: #동시에 2개의 쓰레드가 소켓을 사용하면 오류가 난다. 묶어서 사용해야됨.
             #--------------엑셀 데이터 받기----------------------.
                 엑셀작업데이터=json.loads(sock.recv(8000).decode("utf-8"))
                 print("가구매작업 결과물 데이터를 받았습니다.")
+
             #--------------엑셀 데이터로 , 엑셀 작업파트----------------------.
                 try:
+                    print("서버측에 30초 엑셀파일을 보냈다.")
+                    time.sleep(10)
                     platform=엑셀작업데이터["플랫폼"]
                     workcom=엑셀작업데이터["pc이름"]
                     kakao=엑셀작업데이터["카카오톡"]
@@ -38,7 +42,7 @@ def receiver(sock,guiparent=None):
                 except:
                     create_excel()
                 finally:
-                    sock.sendall("작업끝".encode("utf-8"))
+                    time.sleep(0.5)
                     print("엑셀 작업이 끝났습니다.")
 
     #--------------서버정보업데이트----------------------.
@@ -49,7 +53,7 @@ def receiver(sock,guiparent=None):
                 waitlist=json.loads(waitlist) 
                 print("서버정보 업데이트 데이터를 받았습니다.")
                 print(waitlist)
-                sock.sendall("작업끝".encode("utf-8"))
+    
         
         elif 작업종류설정=="서버간소화정보":
             with 쓰레드락:
@@ -75,7 +79,6 @@ def receiver(sock,guiparent=None):
                         guiparent.server4_btn.setText(응답데이터)
                 #작업끝데이터 보내기.
                 sock.sendall("작업끝".encode("utf-8"))
-      
         else:
             print(f"작업종류설정이 잘못들어왔습니다.{작업종류설정}")
             time.sleep(1)
@@ -102,7 +105,7 @@ def socket_sender(sock,작업방식,가구매작업데이터=None):
         elif 작업방식 == "서버수정데이터":
             print("서버정보업데이트 수정데이터를 보냈습니다")
             sock.sendall(json.dumps(waitlist).encode("utf-8"))
-        
+                    
         elif 작업방식 == "서버간소화정보":
             print("서버간소화정보를 보냈습니다.")
 
@@ -139,8 +142,6 @@ if __name__ == '__main__':
         socket_sender(박경희컴퓨터sock,작업방식,가구매작업데이터) #데이터를 보낸다.
 
        
-
-
 # ''' 
 # 메모를 남겨둔다.
 
