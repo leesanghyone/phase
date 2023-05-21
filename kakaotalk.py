@@ -14,7 +14,7 @@ from pynput.keyboard import Key, Listener
 
 
 #현재 실행 중인 모든 창 핸들 가져오기
-def kakao_room_serach():
+def kakao_room_serach(alertswitch=True):
     #1.현재 실행 중인 모든 창 핸들 가져오기
     while True:
         windows = []
@@ -50,14 +50,19 @@ def kakao_room_serach():
         if len(kakao_title) < 1:
             print(f"카카오톡 대화창이 없습니다.")
             time.sleep(5)
-            win32api.MessageBox(win32con.NULL, '카카오톡 창이 업습니다.', '카카오톡 창 과다.', win32con.MB_OK)
+            if alertswitch:
+                win32api.MessageBox(win32con.NULL, '카카오톡 창이 업습니다.', '카카오톡 창 과다.', win32con.MB_OK)
+            return 0
         elif len(kakao_title) > 1:
             print(f"한개 이상의 창이 켜져 있습니다.")
-            win32api.MessageBox(win32con.NULL, '카카오톡 창이 한개 이상켜져있습니다.', '카카오톡 창 과다.', win32con.MB_OK)
+            if alertswitch:
+                win32api.MessageBox(win32con.NULL, '카카오톡 창이 한개 이상켜져있습니다.', '카카오톡 창 과다.', win32con.MB_OK)
             time.sleep(5)
+            return 0
         elif len(kakao_title) == 1:
             print(f"대화창수집완료하였습니다:{kakao_title[0]} ")
             return kakao_title[0]
+            return 0
 
 
 # 조합키 쓰기 위해
@@ -258,7 +263,7 @@ def kakao_inputPast(hwnd,past_data):
 
 #현재 채팅방에서, 입력창의 내용을 복사해서 gpt를 돌리고 결과값을 넣어준다.
 def kakao_gpt():
-    hwnd=kakao_room_serach()
+    hwnd=kakao_room_serach(alertswitch=True)
     inputdate=kakao_get_inputText(hwnd)
     chatgpt_input(inputdate)
     print(f"입력값은 :\n {inputdate}")
@@ -285,8 +290,6 @@ def keyboard_listener():
 def kakao_gpt_start():
     chatgpt_start()
     threading.Thread(target=keyboard_listener).start()
-
-
 
 #------사용법------#
 if __name__=="__main__": 

@@ -13,6 +13,8 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 
+#단,크롬버전을 받는다. 그리고, 웹드라이버를 해당 목록에 맞게 접목한다.
+# 
 
 def make_driver():
     global driver
@@ -28,7 +30,7 @@ def make_driver():
         # options.set_capability("detach", True)
         options.add_argument("--no-first-run --no-service-autorun --password-store=basic")    
         options.add_argument('--disable-logging')
-
+        # options.add_argument('--headless')
         #비번을 하드에 저장한다?
         # options.add_argument("--password-store=basic") #
         # #기존의 저장된 비밀번호 입력할까요? 질문을 꺼버린다.
@@ -146,8 +148,6 @@ def keboard_typing(area):
         else: #입력값이 한글자씩이면, 하나씩 입력하면 됨
             pyautogui.press(result)
             time.sleep(0.03+random.random()/100)
-
-
 
 def randclick_cssver(css_selector):
     element=driver.find_element(By.CSS_SELECTOR,css_selector)

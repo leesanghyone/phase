@@ -4,7 +4,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.keys import Keys 
 from urllib import parse
 
-#쿠팡 url에서 검색어,상품아이디 추출하는 함수.
+##쿠팡 url에서 검색어,상품아이디 추출하는 함수.
 def coupang_url_extract(url):
     global serch_keyword,serch_product_id
     serch_keyword = re.search(r"q=([^&]*)", url).group(1)

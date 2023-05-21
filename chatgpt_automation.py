@@ -45,6 +45,7 @@ Clear the field value and insert it as the result value.
 계좌번호:110-326-065925
 은행: 신한은행
 
+
 2.박경희
 네이버 아이디: gurumi0408
 이메일 : gurumi0408@naver.com
@@ -74,7 +75,7 @@ Clear the field value and insert it as the result value.
 개인정보 제공은 끝이다. 이제부터 개인정보 속성만 채워서 돌려주면 된다.
 
 '''
-openai.api_key ="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"
+openai.api_key ="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"
 역할부여메세지="From now on, you are an assistant. If I provide personal information, you will remember that information. And when I request it, you should fill in the necessary parts with personal information and provide it to me."
 messages=[{"role": "system", "content":f"{역할부여메세지}"}]
 messages=[]

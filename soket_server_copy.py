@@ -12,6 +12,7 @@ def initstater(ip=str,port=int):
     test_work2={"URL": "https://naver.com", "URL2" :"공백", "플랫폼" : "쿠팡", "카카오톡" :"개발중입니다", "작업시간" : datetime.strftime((datetime.now()+timedelta(minutes=30)),'%Y-%m-%d-%H:%M'),"장바구니" : False, "알림받기" : False, "포인트" : False, "최소가격" : 0, "최대가격" : 0, "찜작업" : False, "알림받기" : False, "페이지체류시간" : 110, "옵션1" : 2, "옵션2" : 2, "구매수량" : 1, "배송메세지" : "슈바..."}
     선입선출=queue.Queue()
     waitlist=[test_work1,test_work2]
+    waitlist=[]
     workerlist=[]
     쓰레드락=threading.Lock()
     #--------------실행자 함수다..----------------------.
@@ -22,6 +23,7 @@ def initstater(ip=str,port=int):
     c_sock,addr=sock.accept()
     print("클라이언트가 들어왔다.")
     return c_sock
+
 #--------------리시버 파트이다.(데이터를 받음)----------------------.
 def receiver(c_sock):
     global 원격리모컨
@@ -41,7 +43,8 @@ def receiver(c_sock):
             print(f"리모컨 바꿈 : 모든 쓰레드 종료")
             socket_start("127.0.0.1",12000,"박경희")
             return 0 #현재 쓰레드는 종료시켜버린다.
-            
+
+          
 def receiver_worker(c_sock,원격리모컨):
     global waitlist,stop_event,workerlist
     while not 원격리모컨.is_set():
@@ -83,6 +86,7 @@ def receiver_worker(c_sock,원격리모컨):
         else:
             작업방식=작업데이터["작업종류"]
             print(f"클라이언트측에서 {작업방식}을 잘못 보냈습니다.")
+
 
 #--------------일을하는 작업자 파트.----------------------.
 def worker(c_sock,원격리모컨):
@@ -198,6 +202,7 @@ def socket_start(ip=str,port=int,workcomname=str):
     Time_manager_thred.start()
     receiver_worker_thred.start()
     print("쓰레드 시작 완료")
+    
 #--------------사용설명을 도와주는 파트다.----------------------.
 if __name__ == '__main__':
     socket_start("127.0.0.1",12000,"박경희")

@@ -19,11 +19,7 @@ def receiver(sock):
         받은데이터=sock.recv(8000).decode("utf-8")
         print("서버측에서 데이터를 받았습니다.")
         선입선출.put(받은데이터)
-        
-#--------------클라이언트측 원격로그 업데이트.----------------------.
-def clientlog_append(guiparent,msg):
-    datetime_now=datetime.now().strftime("%Y-%m-%d-%H:%M:")
-    guiparent.log_plainEdit.appendPlainText(f"{datetime_now} : {msg}")
+
 #--------------리시버 워크작업소----------------------.
 #존재이유는: 리시버측에서 작업을 하는 도중에 새로운 작업데이터가 오면, 리시버측에서 작업을 하지 못하고, 새로운 작업데이터를 받아야한다.
 def receiver_worker(sock,guiparent):
@@ -39,7 +35,7 @@ def receiver_worker(sock,guiparent):
             print("엑셀작업이다.")
             try:
                 print("서버측에 30초 엑셀파일을 보냈다.")
-                time.sleep(10)
+                # time.sleep(10)
                 platform=작업데이터["엑셀작업데이터"]["플랫폼"]
                 workcom=작업데이터["엑셀작업데이터"]["pc이름"]
                 kakao=작업데이터["엑셀작업데이터"]["카카오톡"]
@@ -53,13 +49,13 @@ def receiver_worker(sock,guiparent):
             except:
                 create_excel()
             finally:
-                clientlog_append(guiparent,"가구매 작업이 끝났습니다.")
+        
                 print("엑셀 작업이 끝났습니다.")
         #--------------서버정보업데이트----------------------.
         elif 작업데이터["작업종류"] == "서버정보업데이트": 
             waitlist=작업데이터["서버정보업데이트"]
             print("서버정보 업데이트 데이터를 받았습니다.")
-            clientlog_append(guiparent,"작업 리스트를 업데이트 완료.")
+    
         #--------------서버 간소화 정보----------------------.
         elif 작업데이터["작업종류"] == "서버간소화정보": 
             outip,outport=sock.getpeername()
@@ -80,9 +76,7 @@ def receiver_worker(sock,guiparent):
                 elif outip=="127.0.0.1" and outport ==12003: #이상현.
                     guiparent.server4_btn.setText(작업데이터["간소화정보"])
                     print("서버간소화정보를 Gui에 업데이트 완료")
-            clientlog_append(guiparent,"서버미니맵 업데이트 완료")
-
-
+    
 #--------------데이터 보내는 파트.----------------------.
 def socket_sender(sock,작업방식,가구매작업데이터=None): 
     ##--------------작업방식 데이터 보내기. ----------------------
