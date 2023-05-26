@@ -1,9 +1,3 @@
-from undetective_selenium import *
-import random,re
-from selenium.webdriver.common.action_chains import ActionChains 
-from selenium.webdriver.common.keys import Keys 
-from urllib import parse
-
 ##쿠팡 url에서 검색어,상품아이디 추출하는 함수.
 def coupang_url_extract(url):
     global serch_keyword,serch_product_id
@@ -12,7 +6,6 @@ def coupang_url_extract(url):
     serch_keyword=serch_keyword.replace("+", " ")
     serch_product_id = int(re.search(r"products/(\d+)", url).group(1))
     print(f"검색키워드:{serch_keyword},상품아이디{serch_product_id}")
-
     return str(serch_keyword),int(serch_product_id)
 
 def chrome_start(pc_name="박경희"):
@@ -31,14 +24,14 @@ def Ac1_insert():
     #엔터치기.
     driver.find_element(By.CSS_SELECTOR,"#headerSearchKeyword").send_keys(Keys.ENTER)
 
-
 #가격필터 설정하기.
 def price_filter(min_price,max_price):
-    scroll_cssVer(".search-filter-options.search-price-filter")
+    scroll_CssVer(".search-filter-options.search-price-filter")
     elements=driver.find_elements(By.CSS_SELECTOR,".param-pricerange")
     elements[0].send_keys(min_price)
     elements[1].send_keys(max_price)
-    randclick_cssver(".btn-price-submit")
+    rand_click_cssVer(".btn-price-submit")
+
 
 #가짜 페이지를 클릭하는 함수를 만들어야 함.
 def fake_product(stat_handle=0,work_page=None,work_num=2,work_time=20):
@@ -68,7 +61,7 @@ def Ac2_faketime(work_page=None,work_num=2,work_time=20):
 
 
 def Ac3_price_filter(minprice=None,maxprice=None):
-    if minprice != None:
+    if minprice != None and minprice > 0 :
         price_filter(minprice,maxprice)
 
 
@@ -103,19 +96,20 @@ def target_serch(start_handle=0,start_page=2):
     #상품 데이터를 수집한다.
     switch_handle(start_handle)
     while True:
-        Product_explore()
+        Product_explore() #홈페이지의 상품아이디 다 수집한다.
+        #######현재 페이지에 내가 찾는 상품이 있는경우.#######
         if serch_product_id in Pure_Product_ids:
             print("해당페이지에 상품이 존재한다.")
 
             #타겟 상품의 정보 추가하기(페이지,인덱스)
-                #현재 페이지 찾아내기.
+                #현재 페이지 넘버 찾아내기.
             btns=driver.find_elements(By.CSS_SELECTOR,".btn-page>a")
             for btn in btns:
                 if len(btn.get_attribute("class")) >=1:
                     target_page=int(btn.text)
                     print(f"타겟 페이지는{target_page}")
-                #타겟 인덱스 찾아내기.(중요함)
-            target_index=Pure_Product_indexs[Pure_Product_ids.index(serch_product_id)]
+                #타겟인덱스 찾아내기.(중요함)
+            target_index=Pure_Product_indexs[Pure_Product_ids.index(serch_product_id)] #같은 인덱스에 공통정보를 담고있다.
                 #타겟정보를 찐으로 담는다.
             target_informations={"target_page":target_page,"target_index":target_index}
             print(f"타겟페이지는 {target_page}, 타겟상품의 인덱스는{target_index}")
@@ -126,32 +120,33 @@ def target_serch(start_handle=0,start_page=2):
             start_page=start_page+1
 
 #페이지 스크롤 하는 함수 만들어야 됨.
-def pageview(start_handle=1,scroll_t=30):
+def pageview(start_handle=1,scroll_t=30,speed="super"):
     switch_handle(start_handle)
     cur_time=time.time()
-
+   
     #상품 더보기 클릭하기.<*상페의 상품더보기가 있든 없든, css걸린다. style속성값으로 유무를 구분한다.*>
     element=driver.find_element(By.CSS_SELECTOR,".product-detail-seemore")
     try:
         if element.get_attribute("style") == 'display: block;':
             print("상품더보기 상품 버튼이 존재한다.")
-            scroll_click_Css("#productDetail > div.product-detail-seemore > div")
+            scroll_click_Css("#productDetail > div.product-detail-seemore > div",speed="super")
     except:
         print("상세페이지 더보기 없음.")
     #오류방지용(동적페이지라 밑에 속성을 css 다 안불러옴,)
-    scroll_actionPage2(".sdp-review__title",start_handle,"down","fast")
+    scroll_CssVer(".sdp-review__title",speed=speed)
     
     #시간초 채울떄까지 위아래 반복으로 이동한다.
     while True:
         if time.time() - cur_time >= scroll_t:
             break
         #아래로 이동한다.
-        scroll_cssVer(".sdp-review__title")
+        scroll_CssVer(".sdp-review__title")
         if time.time() - cur_time >= scroll_t:
             break
         #위로 이동한다.(쿠팡은 클래스로 집는게 좋다.)
-        scroll_cssVer(".prod-buy-btn")
-        
+        scroll_CssVer(".prod-buy-btn",speed=speed)
+
+   
 def cur_page():
     btns=driver.find_elements(By.CSS_SELECTOR,".btn-page>a")
     for btn in btns:
@@ -184,7 +179,8 @@ def Ac4_targetgo(page_view_time):
     #구매수량 입력하는 함수. 완성됨.
 def purchase_quantity(num=int):
     element=driver.find_element(By.CSS_SELECTOR,".prod-quantity__input")
-    scroll_elVer(element)
+    scroll_ElVer(element)
+    
     #기존의 데이터 지우기.
     element.send_keys(Keys.CONTROL,"a")
     element.send_keys(Keys.DELETE)
@@ -226,37 +222,38 @@ def image_payopion(num1=int,num2=int):
             #하위메뉴를 클릭한다.
         element=driver.find_elements(By.CSS_SELECTOR,".Dropdown-Select__Dropdown__Item")
         print(len(element))
-        randclick_elver(element[num1-1])
+        rand_click_elVer(element[num1-1])
+        
     except:
         print("상위메뉴가 없다.")
     
     #2번쨰 메뉴 작업코드다.
     try:
         #2번째 메뉴가 텍스트 옵션인경우 
-        if existEl_check_Css(".Text-Select__Item__Border"):
+        if exist_element_check(".Text-Select__Item__Border"):
             subEl=driver.find_elements(By.CSS_SELECTOR,".Text-Select__Item__Border")
-            randclick_elver(subEl[num2-1])
+            rand_click_elVer(subEl[num2-1])
             
         #2번째 메뉴가 이미지 옵션인경우 
-        elif existEl_check_Css(".Image-Select__Item__Img__Status"):
+        elif exist_element_check(".Image-Select__Item__Img__Status"):
             imageEls=driver.find_elements(By.CSS_SELECTOR,".Image-Select__Item__Img__Status")
-            randclick_elver(imageEls[num2-1])
+            rand_click_elVer(imageEls[num2-1])
     except:
         print("서브메뉴가 없다.")
 
 #메인메뉴가 하나인경우다.".Image-Select__Item"
 def payoption(num1=int,num2=int):
     #의류 옵션이 사각박스인경우,
-    if existEl_check_Css(".Dropdown-Select__Label__Container"):
+    if exist_element_check(".Dropdown-Select__Label__Container"):
         image_payopion(num1,num2)
         #선택이미지 박스만 있는 경우다.
-    elif existEl_check_Css(".Image-Select__Item"):
+    elif exist_element_check(".Image-Select__Item"):
         image_payopion(num1,num2)
         #텍스트 박스만 있는 경우다.
-    elif existEl_check_Css(".Text-Select__Item__Border"):
+    elif exist_element_check(".Text-Select__Item__Border"):
         image_payopion(num1,num2)
     #일반적인 옵션이 경우(사각박스 선택지.)
-    elif existEl_check_Css(".prod-option__selected.multiple"):
+    elif exist_element_check(".prod-option__selected.multiple"):
         general_payoption(num1,num2)
 
 def making_screen_folder():
@@ -281,12 +278,6 @@ def making_screen_folder():
         os.mkdir(f"{file_path}/쿠팡/{coupang_product_name}")
 
 
-def collect_productname():
-    element=driver.find_element(By.CSS_SELECTOR,".prod-buy-header__title")
-    product_name=element.text
-    return product_name
-
-
 #찜작업하는 함수.
 def jjimwork():
     scroll_click_Css(".prod-favorite-btn")
@@ -295,10 +286,37 @@ def jjimwork():
     element.screenshot(f"{file_path}/쿠팡/{coupang_product_name}/({pcname})찜.png")
 
 
-    #구매수량,구매옵션, 찜작업을 해준다.
+#상품명을 수집하는 모듈이다.
+def collect_productname():
+    element=driver.find_element(By.CSS_SELECTOR,".prod-buy-header__title")
+    product_name=element.text
+    return product_name
+
+#쿠팡 리뷰 수집하기.
+#전체적인 형태는 리스트다.[(인덱스, 내용),(인덱스, 내용),(인덱스, 내용),(인덱스, 내용)]
+def copang_review_crolling():
+    switch_handle(-1)
+    html=driver.page_source
+    soup=BeautifulSoup(html,"html.parser")
+    reviews=soup.select(".sdp-review__article__list__review__content.js_reviewArticleContent")
+    review_list=[]
+    for index, review in enumerate(reviews,1):
+        print(f"{index}번째 리뷰")
+        print("======================================")
+        print(review.text.strip())
+        묶음=(f"{index}번째",review.text.strip())
+        review_list.append(묶음)
+    return review_list
+
+
+#구매수량,구매옵션, 찜작업을 해준다.(전파트중에 제일중요하다)
 def Ac5_payoptions(moq=1,jjim=bool,optionmenus1=None,optionmenus2=None):
-    global coupang_product_name
+    global coupang_product_name,review_collects,coupang_product_price
+    ####엑셀작업을 위한 정보수집####
     coupang_product_name=collect_productname()
+    review_collects=copang_review_crolling() #전체적인 형태는 리스트다.[(인덱스, 내용),(인덱스, 내용),(인덱스, 내용),(인덱스, 내용)]
+    coupang_product_price=int(driver.find_element(By.CSS_SELECTOR,".total-price").text[:-1].replace(",","")) #원본은 15,900원이다 ("원"단위제거, "," 제거했다)
+    #스크린샷 저장을 위한 폴더만들기.
     making_screen_folder()
     #구입수량이 한개 이상일떄 작동한다.
     if moq > 1:
@@ -307,10 +325,9 @@ def Ac5_payoptions(moq=1,jjim=bool,optionmenus1=None,optionmenus2=None):
     if jjim:
         jjimwork()
     #옵션메뉴의 작동여부.
-    if optionmenus1 != None or optionmenus2 != None:
+    if optionmenus1 > 0 or optionmenus2 > 0:
         payoption(num1=optionmenus1,num2=optionmenus2)
     
-
     #결제 방식의 2가지
 def showpingback():
     scroll_click_Css(".prod-cart-btn")
@@ -340,10 +357,10 @@ def pointuse():
     scroll_click_Css(".insert-cash-toggle")
     time.sleep(1)
     #모두사용버튼 누르기
-    randclick_cssver(".cashAllUsing")
+    rand_click_cssVer(".cashAllUsing")
     time.sleep(1)
     #캐시적용버튼 누르기.
-    randclick_cssver(".apply active")
+    rand_click_cssVer(".apply active")
 
 #배송메세지 입력하기.
 def basongmsg(msg=str):
@@ -353,7 +370,7 @@ def basongmsg(msg=str):
     time.sleep(random.uniform(1,2))
     switch_handle(2)
         #선택옵션,기타버튼을 누른다.
-    randclick_cssver("body > div > div > div.content-wrapper > div.content-body.content-body--fixed > div > form > div.preference-required.__AA01_OTHER_PLACE > label > span")
+    rand_click_cssVer("body > div > div > div.content-wrapper > div.content-body.content-body--fixed > div > form > div.preference-required.__AA01_OTHER_PLACE > label > span")
     time.sleep(random.uniform(1,2))
         #기존의 모든 내용을 지운다.
     element=driver.find_element(By.CSS_SELECTOR,"#__AA01_OTHER_PLACE")
@@ -364,7 +381,7 @@ def basongmsg(msg=str):
 
         #확인버튼 누른다.
     time.sleep(random.uniform(1,2))
-    randclick_cssver(".delivery-preferences__save-button")
+    rand_click_cssVer(".delivery-preferences__save-button")
 
 #결제 비번을 누른다.
 def paymentpassworlds():
@@ -409,9 +426,13 @@ def Ac7_lastoption(point=bool,msg=None):
 
 #구분을 위한 무늬 함수다.
 def output():
-    coupang_product_name
+    global coupang_product_name,review_collects,coupang_product_price
+    coupang_product_name #ac5에 존재함.
+    review_collects #ac5에 존재함.
+    coupang_product_price #ac5에 존재함.
+    ###추가 보강사항이 필요하다###
     #마지막에 포인트를 사용했다면 사용포인트.
-    #결제가격을 크롤링해야 된다.
+    
 
 #잘 작동하는지 테스트가 필요하다.
 def coupang_start(url,minprice=None or int,maxprice=None or int,page_view_time=120,moq=int,jjim=bool,optionmenus1=None or int,optionmenus2=None or int,jangbaguni=bool,point=bool,msg=None or str):

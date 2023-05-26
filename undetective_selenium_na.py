@@ -302,8 +302,6 @@ def scroll_click_Css(css_selector,speed="normal"):
     time.sleep(0.5)
     rand_click_cssVer(css_selector)
 
-
-
 ####################element버전이다############################
   
 #엘리먼트 버전의 커스텀함수.
@@ -438,11 +436,9 @@ def scroll_time(t=60,direction="down",speed="normal",rand_offset=True):
         time.sleep(dt)
         print(sx,sy,dt)
 
-
 #핸들을 수정하는 함수다.
 def switch_handle(n):
     driver.switch_to.window(driver.window_handles[n])
-
 
 
 #스크롤 후에, 클릭하는 함수다.
@@ -452,16 +448,15 @@ def scroll_click_El(element,speed="normal"):
     rand_click_elVer(element)
 
 
+#해당 요소가 페이지에 있는지 체크한다.
 def exist_element_check(target_Css):
     html=driver.page_source
     soup=BeautifulSoup(html,"html.parser")
     exist=soup.select_one(target_Css)
-
     if exist == None:
         return False
     if exist != None:
         return True
-
 
 #실시간 타이핑을 하는 함수다.
 def element_typer(css_selector,texts):
@@ -471,7 +466,6 @@ def element_typer(css_selector,texts):
         element.send_keys(i)
         t=random.uniform(0.25,0.55)
         time.sleep(t)
-
 
 #해당 속성이 나타날떄까지 기다리는 함수다.
 def el_wait(waittime=int,css_selector=str,startfungtion=None,errfungtion=None):
@@ -486,7 +480,7 @@ def el_wait(waittime=int,css_selector=str,startfungtion=None,errfungtion=None):
         errfungtion
         pass
 
-#컴퓨터마다. 경로 통일화 하기.
+#컴퓨터마다.(경로 통일화 하기)
 def filepathfix():
     if os.path.abspath("./").find("SILJUNCOUPANG") == -1:
         filepath=os.path.abspath("./SILJUNCOUPANG").replace("\\","/")
